@@ -9,12 +9,12 @@ namespace Fill_In
     class Fill_In
     {
         private Problem<string> problem;
-        public Fill_In(string puzzlePath, string wordsPath)
+        public Fill_In(string puzzlePath, string wordsPath, out int width)
         {
             List<Domain<string>> domains = Reader.ReadDomains(wordsPath);
             List<TileVariable> horizonatalTileVariables;
             List<TileVariable> verticalTileVariables;
-            Reader.ReadVariables(puzzlePath, domains, out horizonatalTileVariables, out verticalTileVariables);
+            Reader.ReadVariables(puzzlePath, domains, out horizonatalTileVariables, out verticalTileVariables, out width);
             List<Variable<string>> variables = horizonatalTileVariables.Select(h => h.variable)
                 .Union(verticalTileVariables.Select(v => v.variable)).OrderBy(v => -v.domain.values[0].Length).ToList();
             List<Constraint<string>> constraints = CreateWordConstraints(variables, domains);
@@ -73,8 +73,8 @@ namespace Fill_In
                 {
                     if(h.tiles[i] == v.tiles[j])
                     {
-                        constraints.Add(new Constraint<string>(h.variable, v.variable, NotEqualLetter(i, j)));
-                        constraints.Add(new Constraint<string>(v.variable, h.variable, NotEqualLetter(j, i)));
+                        constraints.Add(new Constraint<string>(h.variable, v.variable, EqualLetter(i, j)));
+                        constraints.Add(new Constraint<string>(v.variable, h.variable, EqualLetter(j, i)));
                         return constraints;
                     }
                 }
@@ -82,9 +82,9 @@ namespace Fill_In
             return constraints;
         }
 
-        public static Func<Variable<string>, object, Solution<string>, string, bool> NotEqualLetter(int variableLetterPos, int objLetterPos)
+        public static Func<Variable<string>, object, Solution<string>, string, bool> EqualLetter(int variableLetterPos, int objLetterPos)
         {
-            return (v, o, s, g) => s.assignments.ContainsKey((Variable<string>)o) ? g[variableLetterPos] != s.assignments[(Variable<string>)o][objLetterPos] : true;
+            return (v, o, s, g) => s.assignments.ContainsKey((Variable<string>)o) ? g[variableLetterPos] == s.assignments[(Variable<string>)o][objLetterPos] : true;
         }
 
         public static Func<Variable<string>, object, Solution<string>, string, bool> NotEqualWords =
@@ -92,20 +92,36 @@ namespace Fill_In
         
 
 
-        internal void PrintSolutions(List<Solution<string>> solutions)
+        internal void PrintSolutions(List<Solution<string>> solutions, int width)
         {
             foreach(Solution<string> s in solutions)
             {
-                PrintSolution(s);
+                Console.WriteLine();
+                PrintSolution(s, width);
                 Console.WriteLine();
             }
         }
 
-        private void PrintSolution(Solution<string> s)
+        private void PrintSolution(Solution<string> s, int width)
         {
-            foreach(var a in s.assignments.Where(entry => entry.Key.desc == "H"))
+            int currRow = 1;
+            List<Variable<string>> keysSorted = s.assignments.Where(entry => entry.Key.desc == "H").Select(entry => entry.Key).OrderBy(el => int.Parse(el.id.ToString())).ToList();
+            for (int i = 0; i < keysSorted.Count; i++)
             {
-                Console.WriteLine(a.Value);
+                int position = int.Parse(keysSorted[i].id.ToString());
+                if (i == 0)
+                {
+                    Console.Write(new string(' ', position));
+                }
+                if (int.Parse(keysSorted[i].id.ToString()) < currRow * width)
+                {
+                    Console.Write(s.assignments[keysSorted[i]] + " ");
+                }
+                else
+                {
+                    Console.Write("\n" + new string(' ', position - currRow * width) + s.assignments[keysSorted[i]] + " ");
+                    currRow++;
+                }
             }
         }
     }

@@ -16,10 +16,10 @@ namespace Fill_In
             return groups.Select(g => new Domain<string>(g.ToList(), g.Key.ToString())).ToList();
         }
 
-        internal static void ReadVariables(string puzzlePath, List<Domain<string>> domains, out List<TileVariable> horizonatalTileVariables, out List<TileVariable> verticalTileVariables)
+        internal static void ReadVariables(string puzzlePath, List<Domain<string>> domains, out List<TileVariable> horizonatalTileVariables, out List<TileVariable> verticalTileVariables, out int width)
         {
             string[] text = File.ReadAllLines(puzzlePath);
-            int width = text[0].Length;
+            width = text[0].Length;
             int heigth = text.Length;
             horizonatalTileVariables = GetHorizonatalTileVariables(domains, width, heigth, text);
             verticalTileVariables = GetVerticalTileVariables(domains, width, heigth, text);
