@@ -6,8 +6,12 @@ using System.Text;
 
 namespace CSP
 {
+    class Program{static void Main(string[] args){}}
+    enum SearchType { Backtracking, ForwardChecking} 
+
     public class Problem<T>
     {
+        private const SearchType searchType = SearchType.Backtracking;
         public List<Variable<T>> variables { get; private set; }
         public List<Domain<T>> domains { get; private set; }
         public List<Constraint<T>> constraints { get; private set; }
@@ -39,7 +43,20 @@ namespace CSP
             stopwatch.Start();
             Stopwatch stopwatchAll = new Stopwatch();
             stopwatchAll.Start();
-            Solve(new Solution<T>(invariables), 0);
+            switch (searchType)
+            {
+                case SearchType.ForwardChecking:
+                {
+                    CloneDomains();
+                    ForwardChecking(new Solution<T>(invariables, variables), 0);
+                    break;
+                }
+                case SearchType.Backtracking:
+                {
+                    Backtracking(new Solution<T>(invariables, variables), 0);
+                    break;
+                }
+            }
             stopwatchAll.Stop();
             Console.WriteLine("Total time: " + stopwatchAll.ElapsedMilliseconds);
             Console.WriteLine("Nodes visited till first solution: " + nodesVisitedFirst);
@@ -50,12 +67,81 @@ namespace CSP
             return solutions;
         }
 
+        private void CloneDomains()
+        {
+            foreach(var v in variables)
+            {
+                v.SetDomain(v.domain.Clone());
+            }
+        }
+
+        private void ForwardChecking(Solution<T> solution, int variableNum)
+        {
+            //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
+
+
+
+
+            //Wybierz kolejną zmienną do przypisania
+            for (; variableNum < variables.Count; variableNum++)
+            {
+                Variable<T> variable = variables[variableNum];
+                nodesVisited++;
+                if (invariables.ContainsKey(variable))
+                {
+                    continue;
+                }
+                //Wybierz kolejną wartość z dziedziny aktualnej zmiennej
+                for (int d = 0; d < variable.domain.values.Count; d++)
+                {
+                    T domainVal = variable.domain.values[d];
+                    if(DomainsNotEmpty()) // każda dziedzina nie jest pusta
+                    {
+                        //Przypisz wybraną wartość do aktualnej zmiennej
+                        solution.Assign(variable, domainVal);
+                        //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
+                        solution.FilterOutDomains(variable);
+
+
+                        Backtracking(solution.Clone(true), variableNum + 1);
+                    }
+                    backtracking++;
+                }
+                //brak kolejnej wartości -> Wróć do poprzedniej zmiennej
+                backtracking++;
+                return;
+            }
+            //brak kolejnej zmiennej -> Znaleziono rozwiązanie
+            solutions.Add(solution.Clone(true));
+            if (first)
+            {
+                stopwatch.Stop();
+                Console.WriteLine("First solution time: " + stopwatch.ElapsedMilliseconds);
+                first = false;
+                nodesVisitedFirst = nodesVisited;
+                backtrackingFirst = backtracking;
+            }
+            return;
+        }
+
+        private bool DomainsNotEmpty()
+        {
+            foreach(var v in variables)
+            {
+                if(v.domain.values.Count == 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         bool first = true;
         int nodesVisitedFirst = 0;
         int nodesVisited = 0;
         int backtrackingFirst = 0;
         int backtracking = 0;
-        private void Solve(Solution<T> solution, int variableNum)
+        private void Backtracking(Solution<T> solution, int variableNum)
         {
             //Wybierz kolejną zmienną do przypisania
            for (; variableNum < variables.Count; variableNum++)
@@ -74,7 +160,7 @@ namespace CSP
                     {
                         //Przypisz wybraną wartość do aktualnej zmiennej
                         solution.Assign(variable, domainVal);
-                        Solve(solution.Clone(), variableNum + 1);
+                        Backtracking(solution.Clone(), variableNum + 1);
                     }
                     backtracking++;
                 }
@@ -93,7 +179,6 @@ namespace CSP
                 backtrackingFirst = backtracking;
             }
             return;
-
         }
     }
 }

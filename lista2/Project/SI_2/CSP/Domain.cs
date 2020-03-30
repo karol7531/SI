@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace CSP
 {
@@ -13,5 +14,6 @@ namespace CSP
             this.desc = desc;
         }
 
+        public Domain<T> Clone() => new Domain<T>(values.ToList(), desc);
     }
 }

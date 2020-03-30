@@ -82,11 +82,20 @@ namespace Fill_In
             return constraints;
         }
 
+        /// <summary>
+        /// Cross letter on the same position in horizontal and vertical word must be the same
+        /// </summary>
+        /// <param name="variableLetterPos"></param>
+        /// <param name="objLetterPos"></param>
+        /// <returns></returns>
         public static Func<Variable<string>, object, Solution<string>, string, bool> EqualLetter(int variableLetterPos, int objLetterPos)
         {
             return (v, o, s, g) => s.assignments.ContainsKey((Variable<string>)o) ? g[variableLetterPos] == s.assignments[(Variable<string>)o][objLetterPos] : true;
         }
 
+        /// <summary>
+        /// Word assigned to variable != word of already assigned variable (in the smae domain)
+        /// </summary>
         public static Func<Variable<string>, object, Solution<string>, string, bool> NotEqualWords =
          (v, o, s, g) => s.assignments.ContainsKey((Variable<string>)o) ? g != s.assignments[(Variable<string>)o] : true;
         

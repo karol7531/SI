@@ -18,5 +18,7 @@ namespace CSP
         }
 
         public Variable(int id, Domain<T> domain, string desc = "") : this(id, domain, new List<Constraint<T>>(), desc) { }
+
+        public void SetDomain(Domain<T> domain) => this.domain = domain;
     }
 }
