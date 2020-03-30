@@ -16,8 +16,9 @@ namespace Fill_In
             List<TileVariable> verticalTileVariables;
             Reader.ReadVariables(puzzlePath, domains, out horizonatalTileVariables, out verticalTileVariables);
             List<Variable<string>> variables = horizonatalTileVariables.Select(h => h.variable)
-                .Union(verticalTileVariables.Select(v => v.variable)).OrderBy(v => v.id).ToList();
-            List<Constraint<string>> constraints = CreateConstraints(horizonatalTileVariables, verticalTileVariables);
+                .Union(verticalTileVariables.Select(v => v.variable)).OrderBy(v => -v.domain.values[0].Length).ToList();
+            List<Constraint<string>> constraints = CreateWordConstraints(variables, domains);
+            constraints = constraints.Union(CreateLetterConstraints(horizonatalTileVariables, verticalTileVariables)).ToList();
 
 
             problem = new Problem<string>(variables, domains, constraints, new Dictionary<Variable<string>, string>());
@@ -29,21 +30,41 @@ namespace Fill_In
             return problem.Solve();
         }
 
-        private List<Constraint<string>> CreateConstraints(List<TileVariable> horizonatalTileVariables, List<TileVariable> verticalTileVariables)
+        private List<Constraint<string>> CreateWordConstraints(List<Variable<string>> variables, List<Domain<string>> domains)
         {
             List<Constraint<string>> constraints = new List<Constraint<string>>();
-            foreach(var h in horizonatalTileVariables)
+            foreach (var d in domains)
             {
-                foreach(var v in verticalTileVariables)
+                var variablesWithDomain = variables.Where((v) => v.domain == d);
+                foreach(var v in variablesWithDomain)
                 {
-                    List<Constraint<string>> con = GetConstraint(h, v);
+                    foreach(var o in variablesWithDomain)
+                    {
+                        if(v!= o)
+                        {
+                            constraints.Add(new Constraint<string>(v, o, NotEqualWords));
+                        }
+                    }
+                }
+            }
+            return constraints;
+        }
+
+        private List<Constraint<string>> CreateLetterConstraints(List<TileVariable> horizonatalTileVariables, List<TileVariable> verticalTileVariables)
+        {
+            List<Constraint<string>> constraints = new List<Constraint<string>>();
+            foreach (var h in horizonatalTileVariables)
+            {
+                foreach (var v in verticalTileVariables)
+                {
+                    List<Constraint<string>> con = GetLetterConstraint(h, v);
                     constraints.AddRange(con);
                 }
             }
             return constraints;
         }
 
-        private List<Constraint<string>> GetConstraint(TileVariable h, TileVariable v)
+        private List<Constraint<string>> GetLetterConstraint(TileVariable h, TileVariable v)
         {
             List<Constraint<string>> constraints = new List<Constraint<string>>();
             for (int i = 0; i < h.tiles.Count; i++)
@@ -65,6 +86,11 @@ namespace Fill_In
         {
             return (v, o, s, g) => s.assignments.ContainsKey((Variable<string>)o) ? g[variableLetterPos] != s.assignments[(Variable<string>)o][objLetterPos] : true;
         }
+
+        public static Func<Variable<string>, object, Solution<string>, string, bool> NotEqualWords =
+         (v, o, s, g) => s.assignments.ContainsKey((Variable<string>)o) ? g != s.assignments[(Variable<string>)o] : true;
+        
+
 
         internal void PrintSolutions(List<Solution<string>> solutions)
         {

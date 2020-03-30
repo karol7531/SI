@@ -6,7 +6,7 @@ namespace Sudoku
 {
     class Program
     {
-        const int sudokuNum = 30;
+        const int sudokuNum = 43;
         const string filePath = @"C:\Users\User\Desktop\Ja\PeWueR\sem_6\Sztuczna inteligencja\lista2\Project\ai-lab2-2020-dane\Sudoku.csv";
         static void Main(string[] args)
         {
