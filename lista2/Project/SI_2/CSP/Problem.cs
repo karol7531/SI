@@ -11,7 +11,7 @@ namespace CSP
 
     public class Problem<T>
     {
-        private const SearchType searchType = SearchType.Backtracking;
+        private const SearchType searchType = SearchType.ForwardChecking;
         public List<Variable<T>> variables { get; private set; }
         public List<Domain<T>> domains { get; private set; }
         public List<Constraint<T>> constraints { get; private set; }
@@ -78,9 +78,7 @@ namespace CSP
         private void ForwardChecking(Solution<T> solution, int variableNum)
         {
             //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
-
-
-
+            solution.FilterOutDomains();
 
             //Wybierz kolejną zmienną do przypisania
             for (; variableNum < variables.Count; variableNum++)

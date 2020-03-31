@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CSP
 {
@@ -20,5 +22,12 @@ namespace CSP
         public Variable(int id, Domain<T> domain, string desc = "") : this(id, domain, new List<Constraint<T>>(), desc) { }
 
         public void SetDomain(Domain<T> domain) => this.domain = domain;
+
+        internal Variable<T> Clone() 
+        {
+            //czy trze ba kopiować listę constraintów?
+            throw new NotImplementedException();
+            new Variable<T>(id, domain.Clone(), constraints.ToList(), desc); 
+        }
     }
 }

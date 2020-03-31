@@ -25,13 +25,22 @@ namespace CSP
         {
             if (deepCopy)
             {
-                var newVariables = variables.Select(v => v.Clone());
+                var newVariables = variables.Select(v => v.Clone()).ToList();
                 return new Solution<T>(AssignmentsCloneDeep(newVariables), newVariables);
             }
             return new Solution<T>(AssignmentsClone, variables.ToList(), unassignedVariables.ToList());
         }
-            
-        
+
+        private Dictionary<Variable<T>, T> AssignmentsCloneDeep(List<Variable<T>> newVariables)
+        {
+            Dictionary<Variable<T>, T> newAssignments = new Dictionary<Variable<T>, T>();
+            foreach (KeyValuePair<Variable<T>, T> entry in assignments)
+            {
+                Variable<T> newVariable = newVariables.Where(v => v.id == entry.Key.id).First();
+                newAssignments[newVariable] = entry.Value;
+            }
+            return newAssignments;
+        }
 
         internal bool Check(Variable<T> variable, T valToCheck)
         {
@@ -51,18 +60,58 @@ namespace CSP
             assignments[variable] = value;
         }
 
+
+        //chcemy wywalać im z dzieziny pewną wartość wtedy kiedy wskazuje na to jakiś constraint
         internal void FilterOutDomains(Variable<T> variable)
         {
+            // możliwe  żę trzeba assign constraints (id)
             var value = assignments[variable];
-            var unassignedInDomain = unassignedVariables.Where(v => v.domain.desc == variable.domain.desc);
+            //dla każdej nieprzypisanej zmiennej
+            foreach(var uv in unassignedVariables)
+            {
+                // dla każdego jej ograniczenia
+                foreach(var c in uv.constraints)
+                {
+                    //jeśli jej restrykcja skierowana jest na zmienną która już jest przypisana 
+                    if(c.restriction is Variable<T>)
+                    {
+                        if (assignments.ContainsKey((Variable<T>)c.restriction)){
+                            //values that do not meet the restrictions
+                            List<T> toDel = new List<T>();
+                            //to przeszukaj dziedzinę tej nieprzypisanej zmiennej 
+                            foreach(var val in uv.domain.values)
+                            {
+                                //jak jakaś wartość nie spełnia ograniczeń to ją wywal z dziedziny
+                                if (!c.satisfy(uv, c.restriction, this, val))
+                                {
+                                    toDel.Add(val);
+                                }
+                            }
+                            foreach(var td in toDel)
+                            {
+                                uv.domain.values.Remove(td);
+                            }
+                        }
+
+                    }
+                }
+            }
+            var uidCorrespondingConstraints = unassignedInDomain.
             foreach(var ud in unassignedInDomain)
             {
-                //chyba potrzene deepcopy variables a nie domains
                 ud.domain.values.Remove(value);
             }
         }
 
-        private static List<Variable<T>> UnassignedVariables(Dictionary<Variable<T>, T> assignments, List<Variable<T>> variables) 
+        internal void FilterOutDomains()
+        {
+            foreach(var a in assignments)
+            {
+                FilterOutDomains(a.Key);
+            }
+        }
+
+        private static List<Variable<T>> UnassignedVariables(Dictionary<Variable<T>, T> assignments, List<Variable<T>> variables)
             => variables.Where(v => !assignments.ContainsKey(v)).ToList();
     }
 }
