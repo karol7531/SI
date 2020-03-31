@@ -25,9 +25,23 @@ namespace CSP
 
         internal Variable<T> Clone() 
         {
-            //czy trze ba kopiować listę constraintów?
-            throw new NotImplementedException();
-            new Variable<T>(id, domain.Clone(), constraints.ToList(), desc); 
+           return new Variable<T>(id, domain.Clone(), constraints, desc); 
         }
+
+        public override bool Equals(object obj)
+        {
+            //Check for null and compare run-time types.
+            if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+            else
+            {
+                Variable<T> other = (Variable<T>)obj;
+                return  this.ToString() == other.ToString();
+            }
+        }
+
+        public override string ToString() => this.id + this.desc;
     }
 }

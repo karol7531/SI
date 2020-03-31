@@ -8,7 +8,7 @@ namespace CSP
     {
         public Dictionary<Variable<T>, T> assignments { get; private set; }
         private List<Variable<T>> unassignedVariables;
-        private List<Variable<T>> variables;
+        internal List<Variable<T>> variables;
 
         public Solution(Dictionary<Variable<T>, T> assignments, List<Variable<T>> variables) : this(assignments, variables, UnassignedVariables(assignments, variables)) { }
 
@@ -36,7 +36,7 @@ namespace CSP
             Dictionary<Variable<T>, T> newAssignments = new Dictionary<Variable<T>, T>();
             foreach (KeyValuePair<Variable<T>, T> entry in assignments)
             {
-                Variable<T> newVariable = newVariables.Where(v => v.id == entry.Key.id).First();
+                Variable<T> newVariable = newVariables.Where(v => v.Equals(entry.Key)).First();
                 newAssignments[newVariable] = entry.Value;
             }
             return newAssignments;
@@ -46,7 +46,7 @@ namespace CSP
         {
             foreach(var c in variable.constraints)
             {
-                if (!c.satisfy(variable, c.restriction, this, valToCheck)) 
+                if (!c.satisfy(c.restriction, this, valToCheck)) 
                 {
                     return false;
                 }
@@ -65,42 +65,41 @@ namespace CSP
         internal void FilterOutDomains(Variable<T> variable)
         {
             // możliwe  żę trzeba assign constraints (id)
-            var value = assignments[variable];
+            //var value = assignments[variable];
             //dla każdej nieprzypisanej zmiennej
             foreach(var uv in unassignedVariables)
             {
                 // dla każdego jej ograniczenia
                 foreach(var c in uv.constraints)
                 {
-                    //jeśli jej restrykcja skierowana jest na zmienną która już jest przypisana 
-                    if(c.restriction is Variable<T>)
+                    //jeśli jej restrykcja skierowana jest na podaną zmienną
+                    if(c.restriction is Variable<T> && variable.Equals(c.restriction))
                     {
-                        if (assignments.ContainsKey((Variable<T>)c.restriction)){
-                            //values that do not meet the restrictions
-                            List<T> toDel = new List<T>();
-                            //to przeszukaj dziedzinę tej nieprzypisanej zmiennej 
-                            foreach(var val in uv.domain.values)
+                        //values that do not meet the restrictions
+                        List<T> toDel = new List<T>();
+                        //to przeszukaj dziedzinę tej nieprzypisanej zmiennej 
+                        foreach (var val in uv.domain.values)
+                        {
+                            //jak jakaś wartość nie spełnia ograniczeń to ją wywal z dziedziny
+                            if (!c.satisfy(variable, this, val))
                             {
-                                //jak jakaś wartość nie spełnia ograniczeń to ją wywal z dziedziny
-                                if (!c.satisfy(uv, c.restriction, this, val))
-                                {
-                                    toDel.Add(val);
-                                }
-                            }
-                            foreach(var td in toDel)
-                            {
-                                uv.domain.values.Remove(td);
+                                toDel.Add(val);
                             }
                         }
+                        foreach (var td in toDel)
+                        {
+                            uv.domain.values.Remove(td);
+                        }
+                        //for values also
 
                     }
                 }
             }
-            var uidCorrespondingConstraints = unassignedInDomain.
-            foreach(var ud in unassignedInDomain)
-            {
-                ud.domain.values.Remove(value);
-            }
+            //var uidCorrespondingConstraints = unassignedInDomain.
+            //foreach(var ud in unassignedInDomain)
+            //{
+            //    ud.domain.values.Remove(value);
+            //}
         }
 
         internal void FilterOutDomains()

@@ -115,17 +115,17 @@ namespace Sudoku
         /// </summary>
         /// <param name="value"></param>
         /// <returns>true if value is the same as initial, else false</returns>
-        public static Func<Variable<byte>, object, Solution<byte>, byte, bool> EqualsNumber(byte value)
+        public static Func< object, Solution<byte>, byte, bool> EqualsNumber(byte value)
         {
-           return (v, o, s, g) => g == value; 
+           return ( o, s, g) => g == value; 
         }
 
         /// <summary>
         /// Predicate function. Value cannot be the same as value in the other Variable.
         /// </summary>
         /// <returns>true if value not the same as in other variable, else false</returns>
-        public static Func<Variable<byte>, object, Solution<byte>, byte, bool> NotEqualVariable =
-            (v, o, s, g) => s.assignments.ContainsKey((Variable<byte>)o) ? s.assignments[(Variable<byte>)o] != g : true;
+        public static Func< object, Solution<byte>, byte, bool> NotEqualVariable =
+            ( o, s, g) => s.assignments.ContainsKey((Variable<byte>)o) ? s.assignments[(Variable<byte>)o] != g : true;
 
         public static void PrintSolutions(List<Solution<byte>> solutions)
         {

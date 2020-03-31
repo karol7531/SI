@@ -6,7 +6,7 @@ namespace Fill_In
 {
     class Program
     {
-        const int fillInNum = 4;
+        const int fillInNum = 0;
         const string folderPath = @"C:\Users\User\Desktop\Ja\PeWueR\sem_6\Sztuczna inteligencja\lista2\Project\ai-lab2-2020-dane\Jolka\";
         static string puzzlePath = folderPath + "puzzle" + fillInNum;
         static string wordsPath = folderPath + "words" + fillInNum;

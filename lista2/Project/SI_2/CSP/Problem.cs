@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace CSP
 {
@@ -48,7 +47,10 @@ namespace CSP
                 case SearchType.ForwardChecking:
                 {
                     CloneDomains();
-                    ForwardChecking(new Solution<T>(invariables, variables), 0);
+                    Solution<T> solution = new Solution<T>(invariables, variables);
+                    //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
+                    solution.FilterOutDomains();
+                    ForwardChecking(solution, 0);
                     break;
                 }
                 case SearchType.Backtracking:
@@ -77,13 +79,10 @@ namespace CSP
 
         private void ForwardChecking(Solution<T> solution, int variableNum)
         {
-            //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
-            solution.FilterOutDomains();
-
             //Wybierz kolejną zmienną do przypisania
-            for (; variableNum < variables.Count; variableNum++)
+            for (; variableNum < solution.variables.Count; variableNum++)
             {
-                Variable<T> variable = variables[variableNum];
+                Variable<T> variable = solution.variables[variableNum];
                 nodesVisited++;
                 if (invariables.ContainsKey(variable))
                 {
@@ -101,7 +100,7 @@ namespace CSP
                         solution.FilterOutDomains(variable);
 
 
-                        Backtracking(solution.Clone(true), variableNum + 1);
+                        ForwardChecking(solution.Clone(true), variableNum + 1);
                     }
                     backtracking++;
                 }
