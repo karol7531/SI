@@ -6,23 +6,26 @@ using System.Linq;
 namespace CSP
 {
     class Program{static void Main(string[] args){}}
-    enum SearchType { Backtracking, ForwardChecking} 
+    public enum SearchType { Backtracking, ForwardChecking} 
+    public enum VariableHeuristicType { DefinitionOrder, SmallestDomain, Random}
+    public enum ValueHeuristicType { DefinitionOrder, Random }
 
     public class Problem<T>
     {
-        private const SearchType searchType = SearchType.ForwardChecking;
+        private SearchType searchType;
         public List<Variable<T>> variables { get; private set; }
         public List<Domain<T>> domains { get; private set; }
         public List<Constraint<T>> constraints { get; private set; }
         private List<Solution<T>> solutions = new List<Solution<T>>();
         private Dictionary<Variable<T>, T> invariables;
 
-        public Problem(List<Variable<T>> variables, List<Domain<T>> domains, List<Constraint<T>> constraints, Dictionary<Variable<T>, T> invariables)
+        public Problem(List<Variable<T>> variables, List<Domain<T>> domains, List<Constraint<T>> constraints, Dictionary<Variable<T>, T> invariables, SearchType searchType)
         {
             this.variables = variables;
             this.domains = domains;
             this.constraints = constraints;
             this.invariables = invariables;
+            this.searchType = searchType;
         }
 
         /// <summary>
@@ -37,8 +40,9 @@ namespace CSP
         }
 
         Stopwatch stopwatch = new Stopwatch();
-        public List<Solution<T>> Solve()
+        public List<Solution<T>> Solve(VariableHeuristicType variableHeuristicType, ValueHeuristicType valueHeuristicType)
         {
+            ResetValues();
             stopwatch.Start();
             Stopwatch stopwatchAll = new Stopwatch();
             stopwatchAll.Start();
@@ -48,17 +52,19 @@ namespace CSP
                 {
                     CloneDomains();
                     Solution<T> solution = new Solution<T>(invariables, variables);
-                        //LogSolution(solution);
-                        //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
-                        //solution.AssignInvariables();
+                    //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
                     solution.FilterOutDomains();
-                        //LogSolution(solution);
+                    solution.ApplyValueHeuristic(valueHeuristicType);
+                    solution.ApplyVariableHeuristic(variableHeuristicType);
                     ForwardChecking(solution, 0);
                     break;
                 }
                 case SearchType.Backtracking:
                 {
-                    Backtracking(new Solution<T>(invariables, variables), 0);
+                    Solution<T> solution = new Solution<T>(invariables, variables); 
+                    solution.ApplyValueHeuristic(valueHeuristicType);
+                    solution.ApplyVariableHeuristic(variableHeuristicType);
+                    Backtracking(solution, 0);
                     break;
                 }
             }
@@ -70,6 +76,17 @@ namespace CSP
             Console.WriteLine("Backtracking count total: " + backtracking);
             Console.WriteLine("Number of solutions: " + solutions.Count);
             return solutions;
+        }
+
+        private void ResetValues()
+        {
+            first = true;
+            nodesVisitedFirst = 0;
+            nodesVisited = 0;
+            backtrackingFirst = 0;
+            backtracking = 0;
+            solutions.Clear();
+            stopwatch.Restart();
         }
 
         private void CloneDomains()

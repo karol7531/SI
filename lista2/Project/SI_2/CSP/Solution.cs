@@ -68,7 +68,6 @@ namespace CSP
             assignments[variable] = value;
         }
 
-
         //chcemy usunąć im z dzieziny pewną wartość wtedy kiedy wskazuje na to jakiś constraint
         internal void FilterOutDomains(Variable<T> variable)
         {
@@ -126,5 +125,39 @@ namespace CSP
 
         private static List<Variable<T>> UnassignedVariables(Dictionary<Variable<T>, T> assignments, List<Variable<T>> variables)
             => variables.Where(v => !assignments.ContainsKey(v)).ToList();
+
+        internal void ApplyVariableHeuristic(VariableHeuristicType variableHeuristicType)
+        {
+            switch (variableHeuristicType)
+            {
+                case VariableHeuristicType.Random:
+                    {
+                        var r = new Random();
+                        unassignedVariables = unassignedVariables.OrderBy(x => r.Next()).ToList();
+                        break;
+                    }
+                case VariableHeuristicType.SmallestDomain:
+                    {
+                        unassignedVariables = unassignedVariables.OrderBy(v => v.domain.values.Count).ToList();
+                        break;
+                    }
+            }
+        }
+
+        internal void ApplyValueHeuristic(ValueHeuristicType valueHeuristicType)
+        {
+            switch (valueHeuristicType)
+            {
+                case ValueHeuristicType.Random:
+                    {
+                        var r = new Random();
+                        foreach (var uv in unassignedVariables)
+                        {
+                            uv.domain.values = uv.domain.values.OrderBy(x => r.Next()).ToList();
+                        }
+                        break;
+                    }
+            }
+        }
     }
 }

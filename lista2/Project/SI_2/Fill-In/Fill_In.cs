@@ -9,25 +9,25 @@ namespace Fill_In
     class Fill_In
     {
         private Problem<string> problem;
-        public Fill_In(string puzzlePath, string wordsPath, out int width)
+        public Fill_In(string puzzlePath, string wordsPath, out int width, SearchType searchType)
         {
             List<Domain<string>> domains = Reader.ReadDomains(wordsPath);
             List<TileVariable> horizonatalTileVariables;
             List<TileVariable> verticalTileVariables;
             Reader.ReadVariables(puzzlePath, domains, out horizonatalTileVariables, out verticalTileVariables, out width);
             List<Variable<string>> variables = horizonatalTileVariables.Select(h => h.variable)
-                .Union(verticalTileVariables.Select(v => v.variable)).OrderBy(v => -v.domain.values[0].Length).ToList();
+                .Union(verticalTileVariables.Select(v => v.variable)).ToList();
             List<Constraint<string>> constraints = CreateWordConstraints(variables, domains);
             constraints = constraints.Union(CreateLetterConstraints(horizonatalTileVariables, verticalTileVariables)).ToList();
 
 
-            problem = new Problem<string>(variables, domains, constraints, new Dictionary<Variable<string>, string>());
+            problem = new Problem<string>(variables, domains, constraints, new Dictionary<Variable<string>, string>(), searchType);
             problem.AssignConstraints();
         }
 
-        public List<Solution<string>> Solve()
+        public List<Solution<string>> Solve(VariableHeuristicType variableHeuristicType, ValueHeuristicType valueHeuristicType)
         {
-            return problem.Solve();
+            return problem.Solve(variableHeuristicType, valueHeuristicType);
         }
 
         private List<Constraint<string>> CreateWordConstraints(List<Variable<string>> variables, List<Domain<string>> domains)

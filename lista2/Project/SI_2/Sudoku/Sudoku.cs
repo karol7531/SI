@@ -13,7 +13,7 @@ namespace Sudoku
 
         private Problem<byte> problem;
 
-        public Sudoku(int sudokuNumber, string filePath)
+        public Sudoku(int sudokuNumber, string filePath, SearchType searchType)
         {
             List<Domain<byte>> domains = new List<Domain<byte>>() { domain };
             List<Constraint<byte>> constraints = new List<Constraint<byte>>();
@@ -21,13 +21,13 @@ namespace Sudoku
             List<Variable<byte>> variables = Reader.ReadSudoku(sudokuNumber, filePath, constraints, invariables);
             AddConstraints(constraints, variables);
 
-            problem = new Problem<byte>(variables, domains, constraints, invariables);
+            problem = new Problem<byte>(variables, domains, constraints, invariables, searchType);
             problem.AssignConstraints();
         }
 
-        public List<Solution<byte>> Solve()
+        public List<Solution<byte>> Solve(VariableHeuristicType variableHeuristicType, ValueHeuristicType valueHeuristicType)
         {
-            return problem.Solve();
+            return problem.Solve(variableHeuristicType, valueHeuristicType);
         }
 
         /// <summary>

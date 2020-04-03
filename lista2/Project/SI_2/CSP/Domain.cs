@@ -5,7 +5,7 @@ namespace CSP
 {
     public class Domain<T>
     {
-        public List<T> values { get; private set; }
+        public List<T> values { get; internal set; }
         public string desc { get; private set; }
 
         public Domain(List<T> values, string desc = "")
