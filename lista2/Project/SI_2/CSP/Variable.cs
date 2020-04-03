@@ -23,7 +23,7 @@ namespace CSP
 
         public void SetDomain(Domain<T> domain) => this.domain = domain;
 
-        internal Variable<T> Clone() 
+        public Variable<T> Clone() 
         {
            return new Variable<T>(id, domain.Clone(), constraints, desc); 
         }

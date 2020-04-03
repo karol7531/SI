@@ -15,5 +15,15 @@ namespace CSP
         }
 
         public Domain<T> Clone() => new Domain<T>(values.ToList(), desc);
+
+        public override string ToString()
+        {
+            string result = "{";
+            foreach(var val in values)
+            {
+                result += val + ", ";
+            }
+            return result + "}";
+        }
     }
 }

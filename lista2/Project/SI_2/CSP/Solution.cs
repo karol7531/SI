@@ -7,7 +7,7 @@ namespace CSP
     public class Solution<T>
     {
         public Dictionary<Variable<T>, T> assignments { get; private set; }
-        private List<Variable<T>> unassignedVariables;
+        internal List<Variable<T>> unassignedVariables;
         internal List<Variable<T>> variables;
 
         public Solution(Dictionary<Variable<T>, T> assignments, List<Variable<T>> variables) : this(assignments, variables, UnassignedVariables(assignments, variables)) { }
@@ -21,7 +21,7 @@ namespace CSP
 
         private Dictionary<Variable<T>, T> AssignmentsClone => assignments.ToDictionary(entry => entry.Key, entry => entry.Value);
 
-        internal Solution<T> Clone(bool deepCopy = false)
+        public Solution<T> Clone(bool deepCopy = false)
         {
             if (deepCopy)
             {
@@ -54,6 +54,14 @@ namespace CSP
             return true;
         }
 
+        internal void AssignInvariables()
+        {
+            foreach(var a in assignments)
+            {
+
+            }
+        }
+
         internal void Assign(Variable<T> variable, T value)
         {
             unassignedVariables.Remove(variable);
@@ -61,11 +69,9 @@ namespace CSP
         }
 
 
-        //chcemy wywalać im z dzieziny pewną wartość wtedy kiedy wskazuje na to jakiś constraint
+        //chcemy usunąć im z dzieziny pewną wartość wtedy kiedy wskazuje na to jakiś constraint
         internal void FilterOutDomains(Variable<T> variable)
         {
-            // możliwe  żę trzeba assign constraints (id)
-            //var value = assignments[variable];
             //dla każdej nieprzypisanej zmiennej
             foreach(var uv in unassignedVariables)
             {
@@ -80,7 +86,7 @@ namespace CSP
                         //to przeszukaj dziedzinę tej nieprzypisanej zmiennej 
                         foreach (var val in uv.domain.values)
                         {
-                            //jak jakaś wartość nie spełnia ograniczeń to ją wywal z dziedziny
+                            //jak jakaś wartość nie spełnia ograniczeń to ją usuń z dziedziny
                             if (!c.satisfy(variable, this, val))
                             {
                                 toDel.Add(val);
@@ -95,19 +101,27 @@ namespace CSP
                     }
                 }
             }
-            //var uidCorrespondingConstraints = unassignedInDomain.
-            //foreach(var ud in unassignedInDomain)
-            //{
-            //    ud.domain.values.Remove(value);
-            //}
         }
 
         internal void FilterOutDomains()
         {
             foreach(var a in assignments)
             {
+                a.Key.SetDomain(new Domain<T>(new List<T>() { a.Value }, a.Key.domain.desc));
                 FilterOutDomains(a.Key);
+            }//assign all certain
+        }
+
+        internal bool DomainsNotEmpty()
+        {
+            foreach (var u in unassignedVariables)
+            {
+                if (u.domain.values.Count == 0)
+                {
+                    return false;
+                }
             }
+            return true;
         }
 
         private static List<Variable<T>> UnassignedVariables(Dictionary<Variable<T>, T> assignments, List<Variable<T>> variables)

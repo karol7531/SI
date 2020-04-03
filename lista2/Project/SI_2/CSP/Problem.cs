@@ -48,8 +48,11 @@ namespace CSP
                 {
                     CloneDomains();
                     Solution<T> solution = new Solution<T>(invariables, variables);
-                    //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
+                        //LogSolution(solution);
+                        //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
+                        //solution.AssignInvariables();
                     solution.FilterOutDomains();
+                        //LogSolution(solution);
                     ForwardChecking(solution, 0);
                     break;
                 }
@@ -92,15 +95,16 @@ namespace CSP
                 for (int d = 0; d < variable.domain.values.Count; d++)
                 {
                     T domainVal = variable.domain.values[d];
-                    if(DomainsNotEmpty()) // każda dziedzina nie jest pusta
+                    if(solution.DomainsNotEmpty()) // każda dziedzina nie jest pusta
                     {
+                        var solutionCloned = solution.Clone(true);
                         //Przypisz wybraną wartość do aktualnej zmiennej
-                        solution.Assign(variable, domainVal);
+                        solutionCloned.Assign(variable, domainVal);
                         //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
-                        solution.FilterOutDomains(variable);
+                        solutionCloned.FilterOutDomains(variable);
+                        //LogSolution(solutionCloned);
 
-
-                        ForwardChecking(solution.Clone(true), variableNum + 1);
+                        ForwardChecking(solutionCloned, variableNum + 1);
                     }
                     backtracking++;
                 }
@@ -118,19 +122,20 @@ namespace CSP
                 nodesVisitedFirst = nodesVisited;
                 backtrackingFirst = backtracking;
             }
-            return;
         }
 
-        private bool DomainsNotEmpty()
+        private void LogSolution(Solution<T> solution)
         {
-            foreach(var v in variables)
+            foreach (KeyValuePair<Variable<T>, T> entry in solution.assignments)
             {
-                if(v.domain.values.Count == 0)
-                {
-                    return false;
-                }
+                Console.Write(entry.Key + ": " + entry.Value + "\t");
             }
-            return true;
+            Console.WriteLine();
+            foreach (var u in solution.unassignedVariables)
+            {
+                Console.Write(u + "" + u.domain + " ");
+            }
+            Console.WriteLine("\n");
         }
 
         bool first = true;
@@ -175,7 +180,6 @@ namespace CSP
                 nodesVisitedFirst = nodesVisited;
                 backtrackingFirst = backtracking;
             }
-            return;
         }
     }
 }
