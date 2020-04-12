@@ -21,9 +21,10 @@ namespace SI_3
         private int Max(State state, int depth, ref int selectedCol) 
         {
             int colSelection = 0;
-            if(depth == 0)
+            int stateEval = state.Evaluation();
+            if (depth == 0 || stateEval != 0)
             {
-                return state.Evaluation();
+                return stateEval;
             }
             int eval = -10;
 
@@ -48,9 +49,10 @@ namespace SI_3
 
         private int Min(State state, int depth) 
         {
-            if (depth == 0)
+            int stateEval = state.Evaluation();
+            if (depth == 0 || stateEval != 0)
             {
-                return state.Evaluation();
+                return stateEval;
             }
             int eval = 10;
 

@@ -31,9 +31,9 @@ namespace SI_3
             State newState = this.Clone();
             for (int r = rows - 1; r >= 0; r--)
             {
-                if (board[r, col] == null)
+                if (newState.board[r, col] == null)
                 {
-                    board[r, col] = player;
+                    newState.board[r, col] = player;
                     return newState;
                 }
             }
@@ -46,7 +46,7 @@ namespace SI_3
             {
                 for (int c = 0; c < cols; c++)
                 {
-                    Console.Write(board[r, c] == null ? " " : board[r, c] == true ? "X" : "O");
+                    Console.Write(board[r, c] == null ? "_ " : board[r, c] == true ? "X " : "O ");
                 }
                 Console.WriteLine();
             }
@@ -69,7 +69,7 @@ namespace SI_3
                 int inRow = 0;
                 for (int c = 0; c < cols; c++)
                 {
-                    inRow = board[r, c] == player ? inRow++ : 0;
+                    inRow = board[r, c] == player ? inRow + 1 : 0;
                     if (inRow == 4) return true;
                 }
             }
@@ -83,7 +83,7 @@ namespace SI_3
                 int inRow = 0;
                 for (int r = 0; r < rows; r++)
                 {
-                    inRow = board[r, c] == player ? inRow++ : 0;
+                    inRow = board[r, c] == player ? inRow + 1 : 0;
                     if (inRow == 4) return true;
                 }
             }
@@ -104,7 +104,7 @@ namespace SI_3
                 int j = 0;
                 while (i > 0 && j < cols)
                 {
-                    inRow = board[i, j] == player ? inRow++ : 0;
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
                     if (inRow == 4) return true;
                     i--;
                     j++;
@@ -117,7 +117,7 @@ namespace SI_3
                 int j = c;
                 while (i > 0 && j < cols)
                 {
-                    inRow = board[i, j] == player ? inRow++ : 0;
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
                     if (inRow == 4) return true;
                     i--;
                     j++;
