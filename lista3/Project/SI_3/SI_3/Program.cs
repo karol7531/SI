@@ -6,7 +6,8 @@ namespace SI_3
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            MinMax minMax = new MinMax(3);
+            State initialState = new State(6, 7);
         }
     }
 }
