@@ -102,7 +102,7 @@ namespace SI_3
                 int inRow = 0;
                 int i = r;
                 int j = 0;
-                while (i > 0 && j < cols)
+                while (i >= 0 && j < cols)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
                     if (inRow == 4) return true;
@@ -115,7 +115,7 @@ namespace SI_3
                 int inRow = 0;
                 int i = rows - 1;
                 int j = c;
-                while (i > 0 && j < cols)
+                while (i >= 0 && j < cols)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
                     if (inRow == 4) return true;
@@ -133,9 +133,9 @@ namespace SI_3
                 int inRow = 0;
                 int i = r;
                 int j = cols - 1;
-                while (i > 0 && j >= 0)
+                while (i >= 0 && j >= 0)
                 {
-                    inRow = board[i, j] == player ? inRow++ : 0;
+                    inRow = board[i, j] == player ? inRow+1 : 0;
                     if (inRow == 4) return true;
                     i--;
                     j--;
@@ -146,9 +146,9 @@ namespace SI_3
                 int inRow = 0;
                 int i = rows - 1;
                 int j = c;
-                while (i > 0 && j >= 0)
+                while (i >= 0 && j >= 0)
                 {
-                    inRow = board[i, j] == player ? inRow++ : 0;
+                    inRow = board[i, j] == player ? inRow+1 : 0;
                     if (inRow == 4) return true;
                     i--;
                     j--;
