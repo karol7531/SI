@@ -27,6 +27,15 @@ namespace SI_3
             return board[0, col] == null;
         }
 
+        public bool CanPlace()
+        {
+            for(int c = 0; c< cols; c++)
+            {
+                if (CanPlace(c)) return true;
+            }
+            return false;
+        }
+
         internal State NextState(bool player, int col)
         {
             State newState = this.Clone();

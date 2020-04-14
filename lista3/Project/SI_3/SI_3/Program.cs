@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SI_3
 {
@@ -17,17 +18,30 @@ namespace SI_3
 
         private static void PlayerVsAi(MinMax minMax)
         {
+            Stack<State> stack = new Stack<State>();
             State state = new State(rows, cols);
-            while (true)
+            while (state.CanPlace())
             {
+                stack.Push(state.Clone());
                 Console.WriteLine("\nYour move:");
-                UserMove(minMax, ref state, false);
+                string line = Console.ReadLine();
+                if(line == "u")
+                {
+                    stack.Pop(); stack.Pop();
+                    state = stack.Pop();
+                    Console.WriteLine(state);
+                    continue;
+                }
+                int playerMove = int.Parse(line);
+                state = state.NextState(false, playerMove - 1);
+                Console.WriteLine(state);
                 if (state.Points(false) >= State.pointsWin)
                 {
                     Console.WriteLine("Congratulations, you won");
                     return;
                 }
 
+                stack.Push(state.Clone());
                 Console.WriteLine("\nAI move:");
                 AiMove(minMax, ref state, true);
                 if (state.Points(true) >= State.pointsWin)
@@ -41,7 +55,7 @@ namespace SI_3
         private static void AiVsAi(MinMax minMax)
         {
             State state = new State(rows, cols);
-            while (true)
+            while (state.CanPlace())
             {
                 Console.WriteLine("\nAI_1 move:");
                 AiMove(minMax, ref state, false);
@@ -65,13 +79,6 @@ namespace SI_3
         {
             int aiMove = minMax.GetMove(state, player);
             state = state.NextState(player, aiMove);
-            Console.WriteLine(state);
-        }
-
-        private static void UserMove(MinMax minMax, ref State state, bool player)
-        {
-            int playerMove = int.Parse(Console.ReadLine());
-            state = state.NextState(player, playerMove - 1);
             Console.WriteLine(state);
         }
     }
