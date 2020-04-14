@@ -4,14 +4,14 @@ namespace SI_3
 {
     class Program
     {
-        const int depth = 4, 
+        const int depth = 2, 
             rows = 6, 
             cols = 7;
         static void Main(string[] args)
         {
             MinMax minMax = new MinMax(depth);
-            //PlayerVsAi(minMax);
-            AiVsAi(minMax);
+            PlayerVsAi(minMax);
+            //AiVsAi(minMax);
             Console.ReadKey();
         }
 
@@ -21,16 +21,16 @@ namespace SI_3
             while (true)
             {
                 Console.WriteLine("\nYour move:");
-                UserMove(minMax, ref state, true);
-                if (state.DidWin(true))
+                UserMove(minMax, ref state, false);
+                if (state.Points(false) >= State.pointsWin)
                 {
                     Console.WriteLine("Congratulations, you won");
                     return;
                 }
 
                 Console.WriteLine("\nAI move:");
-                AiMove(minMax, ref state, false);
-                if (state.DidWin(false))
+                AiMove(minMax, ref state, true);
+                if (state.Points(true) >= State.pointsWin)
                 {
                     Console.WriteLine("AI won");
                     return;
@@ -45,7 +45,7 @@ namespace SI_3
             {
                 Console.WriteLine("\nAI_1 move:");
                 AiMove(minMax, ref state, false);
-                if (state.DidWin(false))
+                if (state.Points(false) >= State.pointsWin)
                 {
                     Console.WriteLine("AI_1 won");
                     return;
@@ -53,7 +53,7 @@ namespace SI_3
 
                 Console.WriteLine("\nAI_2 move:");
                 AiMove(minMax, ref state, true); 
-                if (state.DidWin(true))
+                if (state.Points(true) >= State.pointsWin)
                 {
                     Console.WriteLine("AI_2 won");
                     return;
@@ -65,14 +65,14 @@ namespace SI_3
         {
             int aiMove = minMax.GetMove(state, player);
             state = state.NextState(player, aiMove);
-            state.PrintState();
+            Console.WriteLine(state);
         }
 
         private static void UserMove(MinMax minMax, ref State state, bool player)
         {
             int playerMove = int.Parse(Console.ReadLine());
             state = state.NextState(player, playerMove - 1);
-            state.PrintState(); 
+            Console.WriteLine(state);
         }
     }
 }

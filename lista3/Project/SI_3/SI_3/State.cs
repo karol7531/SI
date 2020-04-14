@@ -4,6 +4,7 @@ namespace SI_3
 {
     class State
     {
+        public const int pointsWin = 100000;
         private bool?[,] board;
         internal int rows, cols;
 
@@ -40,63 +41,69 @@ namespace SI_3
             return newState;
         }
 
-        public void PrintState()
+        public override string ToString()
         {
+            string output = "";
             for (int r = 0; r < rows; r++)
             {
                 for (int c = 0; c < cols; c++)
                 {
-                    Console.Write(board[r, c] == null ? "_ " : board[r, c] == true ? "X " : "O ");
+                    output += board[r, c] == null ? "_ " : board[r, c] == true ? "X " : "O ";
                 }
-                Console.WriteLine();
+                output += "\n";
             }
+            return output;
         }
 
-        public int Evaluation()
+        public int Evaluation(bool player)
         {
-            return DidWin(true) ? 1 : DidWin(false) ? -1 : 0;
+            int truePoints = Points(true);
+            if (truePoints >= pointsWin) return pointsWin;
+            int falsePoints = Points(false);
+            if (falsePoints >= pointsWin) return - pointsWin;
+            return truePoints - falsePoints;
         }
 
-        public bool DidWin(bool player)
+        public int Points(bool player)
         {
-            return DidWinHorizontal(player) || DidWinVertical(player) || DidWinDiagonal(player);
+            return PointsHorizontal(player) + PointsVertical(player) + PointsDiagonalForward(player) + PointsDiagonalBack(player);
         }
 
-        private bool DidWinHorizontal(bool player)
+        private int PointsHorizontal(bool player)
         {
+            int points = 0;
             for (int r = 0; r < rows; r++)
             {
                 int inRow = 0;
                 for (int c = 0; c < cols; c++)
                 {
                     inRow = board[r, c] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return true;
+                    if (inRow == 4) return pointsWin;
+                    points += inRow;
                 }
             }
-            return false;
+            return points;
         }
 
-        private bool DidWinVertical(bool player)
+        private int PointsVertical(bool player)
         {
+            int points = 0;
             for (int c = 0; c < cols; c++)
             {
                 int inRow = 0;
                 for (int r = 0; r < rows; r++)
                 {
                     inRow = board[r, c] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return true;
+                    if (inRow == 4) return pointsWin;
+                    points += inRow;
                 }
             }
-            return false;
+            return points;
         }
 
-        private bool DidWinDiagonal(bool player)
+        private int PointsDiagonalForward(bool player)
         {
-            return DidWinDiagonalForward(player) || DidWinDiagonalBack(player);
-        }
-
-        private bool DidWinDiagonalForward(bool player)
-        {
+            int points = 0;
             for (int r = 3; r < rows; r++)
             {
                 int inRow = 0;
@@ -105,7 +112,8 @@ namespace SI_3
                 while (i >= 0 && j < cols)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return true;
+                    if (inRow == 4) return pointsWin;
+                    points += inRow;
                     i--;
                     j++;
                 }
@@ -118,16 +126,18 @@ namespace SI_3
                 while (i >= 0 && j < cols)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return true;
+                    if (inRow == 4) return pointsWin;
+                    points += inRow;
                     i--;
                     j++;
                 }
             }
-            return false;
+            return points;
         }
 
-        private bool DidWinDiagonalBack(bool player)
+        private int PointsDiagonalBack(bool player)
         {
+            int points = 0;
             for (int r = 3; r < rows; r++)
             {
                 int inRow = 0;
@@ -135,8 +145,9 @@ namespace SI_3
                 int j = cols - 1;
                 while (i >= 0 && j >= 0)
                 {
-                    inRow = board[i, j] == player ? inRow+1 : 0;
-                    if (inRow == 4) return true;
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
+                    if (inRow == 4) return pointsWin;
+                    points += inRow;
                     i--;
                     j--;
                 }
@@ -148,13 +159,14 @@ namespace SI_3
                 int j = c;
                 while (i >= 0 && j >= 0)
                 {
-                    inRow = board[i, j] == player ? inRow+1 : 0;
-                    if (inRow == 4) return true;
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
+                    if (inRow == 4) return pointsWin;
+                    points += inRow;
                     i--;
                     j--;
                 }
             }
-            return false;
+            return points;
         }
     }
 }
