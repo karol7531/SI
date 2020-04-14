@@ -16,7 +16,9 @@ namespace Fill_In
             List<TileVariable> verticalTileVariables;
             Reader.ReadVariables(puzzlePath, domains, out horizonatalTileVariables, out verticalTileVariables, out width);
             List<Variable<string>> variables = horizonatalTileVariables.Select(h => h.variable)
-                .Union(verticalTileVariables.Select(v => v.variable)).ToList();
+                .Union(verticalTileVariables.Select(v => v.variable))
+                //.OrderBy(v => -v.domain.values[0].Length)
+                .ToList();
             List<Constraint<string>> constraints = CreateWordConstraints(variables, domains);
             constraints = constraints.Union(CreateLetterConstraints(horizonatalTileVariables, verticalTileVariables)).ToList();
 

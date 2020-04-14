@@ -7,25 +7,27 @@ namespace CSP
 {
     class Program{static void Main(string[] args){}}
     public enum SearchType { Backtracking, ForwardChecking} 
-    public enum VariableHeuristicType { DefinitionOrder, SmallestDomain, Random}
+    public enum VariableHeuristicType { DefinitionOrder, SmallestDomain, Random, SpecificOrder, ShortestWord}
     public enum ValueHeuristicType { DefinitionOrder, Random }
 
     public class Problem<T>
     {
         private SearchType searchType;
         public List<Variable<T>> variables { get; private set; }
+        private List<int> specificOrder;
         public List<Domain<T>> domains { get; private set; }
         public List<Constraint<T>> constraints { get; private set; }
         private List<Solution<T>> solutions = new List<Solution<T>>();
         private Dictionary<Variable<T>, T> invariables;
 
-        public Problem(List<Variable<T>> variables, List<Domain<T>> domains, List<Constraint<T>> constraints, Dictionary<Variable<T>, T> invariables, SearchType searchType)
+        public Problem(List<Variable<T>> variables, List<Domain<T>> domains, List<Constraint<T>> constraints, Dictionary<Variable<T>, T> invariables, SearchType searchType, List<int> specificOrder = null)
         {
             this.variables = variables;
             this.domains = domains;
             this.constraints = constraints;
             this.invariables = invariables;
             this.searchType = searchType;
+            this.specificOrder = specificOrder;
         }
 
         /// <summary>
@@ -46,6 +48,8 @@ namespace CSP
             stopwatch.Start();
             Stopwatch stopwatchAll = new Stopwatch();
             stopwatchAll.Start();
+            ApplyValueHeuristic(valueHeuristicType);
+            ApplyVariableHeuristic(variableHeuristicType);
             switch (searchType)
             {
                 case SearchType.ForwardChecking:
@@ -54,26 +58,22 @@ namespace CSP
                     Solution<T> solution = new Solution<T>(invariables, variables);
                     //Wykorzystując ograniczenia odfiltruj dziedziny zmiennych bez wartości
                     solution.FilterOutDomains();
-                    solution.ApplyValueHeuristic(valueHeuristicType);
-                    solution.ApplyVariableHeuristic(variableHeuristicType);
                     ForwardChecking(solution, 0);
                     break;
                 }
                 case SearchType.Backtracking:
                 {
-                    Solution<T> solution = new Solution<T>(invariables, variables); 
-                    solution.ApplyValueHeuristic(valueHeuristicType);
-                    solution.ApplyVariableHeuristic(variableHeuristicType);
+                    Solution<T> solution = new Solution<T>(invariables, variables);
                     Backtracking(solution, 0);
                     break;
                 }
             }
             stopwatchAll.Stop();
             Console.WriteLine("Total time: " + stopwatchAll.ElapsedMilliseconds);
-            Console.WriteLine("Nodes visited till first solution: " + nodesVisitedFirst);
-            Console.WriteLine("Nodes visited total: " + nodesVisited);
-            Console.WriteLine("Backtracking count till first solution: " + backtrackingFirst);
-            Console.WriteLine("Backtracking count total: " + backtracking);
+            Console.WriteLine("Nodes visited till first solution: " + nodesFirst);
+            Console.WriteLine("Nodes visited total: " + nodes);
+            Console.WriteLine("Turn backs count till first solution: " + turnBacksFirst);
+            Console.WriteLine("Turn backs count total: " + turnBacks);
             Console.WriteLine("Number of solutions: " + solutions.Count);
             return solutions;
         }
@@ -81,10 +81,10 @@ namespace CSP
         private void ResetValues()
         {
             first = true;
-            nodesVisitedFirst = 0;
-            nodesVisited = 0;
-            backtrackingFirst = 0;
-            backtracking = 0;
+            nodesFirst = 0;
+            nodes = 0;
+            turnBacksFirst = 0;
+            turnBacks = 0;
             solutions.Clear();
             stopwatch.Restart();
         }
@@ -103,7 +103,7 @@ namespace CSP
             for (; variableNum < solution.variables.Count; variableNum++)
             {
                 Variable<T> variable = solution.variables[variableNum];
-                nodesVisited++;
+                nodes++;
                 if (invariables.ContainsKey(variable))
                 {
                     continue;
@@ -123,10 +123,10 @@ namespace CSP
 
                         ForwardChecking(solutionCloned, variableNum + 1);
                     }
-                    backtracking++;
+                    turnBacks++;
                 }
                 //brak kolejnej wartości -> Wróć do poprzedniej zmiennej
-                backtracking++;
+                turnBacks++;
                 return;
             }
             //brak kolejnej zmiennej -> Znaleziono rozwiązanie
@@ -136,8 +136,8 @@ namespace CSP
                 stopwatch.Stop();
                 Console.WriteLine("First solution time: " + stopwatch.ElapsedMilliseconds);
                 first = false;
-                nodesVisitedFirst = nodesVisited;
-                backtrackingFirst = backtracking;
+                nodesFirst = nodes;
+                turnBacksFirst = turnBacks;
             }
         }
 
@@ -147,26 +147,26 @@ namespace CSP
             {
                 Console.Write(entry.Key + ": " + entry.Value + "\t");
             }
-            Console.WriteLine();
-            foreach (var u in solution.unassignedVariables)
-            {
-                Console.Write(u + "" + u.domain + " ");
-            }
+            //Console.WriteLine();
+            //foreach (var u in solution.unassignedVariables)
+            //{
+            //    Console.Write(u + "" + u.domain + " ");
+            //}
             Console.WriteLine("\n");
         }
 
         bool first = true;
-        int nodesVisitedFirst = 0;
-        int nodesVisited = 0;
-        int backtrackingFirst = 0;
-        int backtracking = 0;
+        int nodesFirst = 0;
+        int nodes = 0;
+        int turnBacksFirst = 0;
+        int turnBacks = 0;
         private void Backtracking(Solution<T> solution, int variableNum)
         {
             //Wybierz kolejną zmienną do przypisania
-           for (; variableNum < variables.Count; variableNum++)
+            for (; variableNum < solution.variables.Count; variableNum++)
             {
-                Variable<T> variable = variables[variableNum];
-                nodesVisited++;
+                Variable<T> variable = solution.variables[variableNum];
+                nodes++;
                 if (invariables.ContainsKey(variable))
                 {
                     continue;
@@ -181,10 +181,10 @@ namespace CSP
                         solution.Assign(variable, domainVal);
                         Backtracking(solution.Clone(), variableNum + 1);
                     }
-                    backtracking++;
+                    turnBacks++;
                 }
                 //brak kolejnej wartości -> Wróć do poprzedniej zmiennej
-                backtracking++;
+                turnBacks++;
                 return;
             }
             //brak kolejnej zmiennej -> Znaleziono rozwiązanie
@@ -194,8 +194,66 @@ namespace CSP
                 stopwatch.Stop();
                 Console.WriteLine("First solution time: " + stopwatch.ElapsedMilliseconds);
                 first = false;
-                nodesVisitedFirst = nodesVisited;
-                backtrackingFirst = backtracking;
+                nodesFirst = nodes;
+                turnBacksFirst = turnBacks;
+            }
+        }
+
+        internal void ApplyVariableHeuristic(VariableHeuristicType variableHeuristicType)
+        {
+            switch (variableHeuristicType)
+            {
+                case VariableHeuristicType.Random:
+                    {
+                        var r = new Random();
+                        variables = variables.OrderBy(x => r.Next()).ToList();
+                        break;
+                    }
+                case VariableHeuristicType.SmallestDomain:
+                    {
+                        variables = variables.OrderBy(v => v.domain.values.Count).ToList();
+                        break;
+                    }
+                case VariableHeuristicType.ShortestWord:
+                    {
+                        if (typeof(T) == typeof(String))
+                        {
+                            variables = variables.OrderBy(v => -((string)(object)v.domain.values[0]).Length).ToList();
+                        }
+                        else 
+                        {
+                            Console.WriteLine("Variable type is not a string, cannot perform ShortestWord variable heuristic");
+                        }
+                        break;
+                    }
+                case VariableHeuristicType.SpecificOrder:
+                    {
+                        if (specificOrder != null)
+                        {
+                            variables = variables.OrderBy(v => specificOrder.IndexOf(v.id)).ToList();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Specific order not provided");
+                        }
+                        break;
+                    }
+            }
+        }
+
+        internal void ApplyValueHeuristic(ValueHeuristicType valueHeuristicType)
+        {
+            switch (valueHeuristicType)
+            {
+                case ValueHeuristicType.Random:
+                    {
+                        var r = new Random();
+                        foreach (var v in variables)
+                        {
+                            v.domain.values = v.domain.values.OrderBy(x => r.Next()).ToList();
+                        }
+                        break;
+                    }
             }
         }
     }
