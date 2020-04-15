@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace SI_3
+﻿namespace SI_3
 {
     class State
     {

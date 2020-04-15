@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace SI_3
 {
@@ -31,7 +32,7 @@ namespace SI_3
                     {
                         eval = childEval;
                         colSelection = c;
-                        selectedCol = c;
+                        //selectedCol = c;
                     }
                 }
             }
@@ -42,10 +43,59 @@ namespace SI_3
             return eval;
         }
 
+        private int FindMoveBoosted(State state, bool player, int depth, ref int selectedCol)
+        {
+            int colSelection = 0;
+            object accessLock = new object();
+            int stateEval = state.Evaluation(player);
+            if (depth == 0 || stateEval == State.pointsWin || stateEval == -State.pointsWin)
+            {
+                return stateEval;
+            }
+
+            int eval = player ? int.MinValue : int.MaxValue;
+            if (depth == this.depth)
+            {
+                Parallel.For(0, state.cols,(c) => {
+                    if (state.CanPlace(c))
+                    {
+                        int refNum = 1;
+                        int childEval = FindMoveBoosted(state.NextState(player, c), !player, depth - 1, ref refNum);
+                        lock(accessLock) 
+                        {
+                            if ((player && childEval > eval) || (!player && childEval < eval))
+                            {
+                                eval = childEval;
+                                colSelection = c;
+                            }
+                        }
+                    }
+                });
+                selectedCol = colSelection;
+            }
+            else
+            {
+                for (int c = 0; c < state.cols; c++)
+                {
+                    if (state.CanPlace(c))
+                    {
+                        int refNum = 1;
+                        int childEval = FindMoveBoosted(state.NextState(player, c), !player, depth - 1, ref refNum);
+                        if ((player && childEval > eval) || (!player && childEval < eval))
+                        {
+                            eval = childEval;
+                        }
+                    }
+                }
+            }
+            return eval;
+        }
+
         public int GetMove(State state, bool player) 
         {
             int selectedCol = 0;
-            FindMove(state, player, this.depth, ref selectedCol);
+            //FindMove(state, player, this.depth, ref selectedCol);
+            FindMoveBoosted(state, player, this.depth, ref selectedCol);
             return selectedCol;
         }
     }

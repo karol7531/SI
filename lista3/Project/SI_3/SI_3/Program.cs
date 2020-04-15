@@ -1,18 +1,25 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace SI_3
 {
     class Program
     {
-        const int depth = 2, 
+        const int depth = 6, 
             rows = 6, 
             cols = 7;
         static void Main(string[] args)
         {
             MinMax minMax = new MinMax(depth);
-            PlayerVsAi(minMax);
-            //AiVsAi(minMax);
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+
+            //PlayerVsAi(minMax);
+            AiVsAi(minMax);
+
+            stopwatch.Stop();
+            Console.WriteLine($"Game time: {stopwatch.ElapsedMilliseconds}");
             Console.ReadKey();
         }
 
