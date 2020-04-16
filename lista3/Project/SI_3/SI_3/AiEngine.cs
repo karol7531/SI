@@ -1,7 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace SI_3
 {
+    public enum MethodType { MinMax, MinMaxBoosted, AlphaBeta}
     class AiEngine
     {
         private int depth;
@@ -72,11 +74,66 @@ namespace SI_3
             return eval;
         }
 
-        public int GetMove(State state, bool player)
+        private int AlphaBeta(State state, bool player, int depth, ref int selectedCol, ref int alpha, ref int beta)
+        {
+            int colSelection = 0;
+            alpha = int.MinValue;
+            beta = int.MaxValue;
+            int stateEval = state.Evaluation(player);
+            if (depth == 0 || stateEval == State.pointsWin || stateEval == -State.pointsWin)
+            {
+                return stateEval;
+            }
+
+            int eval = player ? int.MinValue + 1 : int.MaxValue - 1;
+            for (int c = 0; c < state.cols; c++)
+            {
+                if (state.CanPlace(c))
+                {
+                    int refNum = 1;
+                    int childAlpha = alpha;
+                    int childBeta = beta;
+                    int childEval = AlphaBeta(state.NextState(player, c), !player, depth - 1, ref refNum, ref childAlpha, ref childBeta);
+                    if ((player && childEval > eval) || (!player && childEval < eval))
+                    {
+                        eval = childEval;
+                        colSelection = c;
+                    }
+                    if (player) { alpha = Math.Max(childBeta, eval); }
+                    else { beta = Math.Min(childAlpha, eval); }
+                    if(beta <= alpha) {  break ;}
+                }
+            }
+            if (depth == this.depth)
+            {
+                selectedCol = colSelection;
+            }
+            return eval;
+        }
+
+        public int GetMove(State state, bool player, MethodType methodType)
         {
             int selectedCol = 0;
-            //MinMax(state, player, this.depth, ref selectedCol);
-            MinMaxBoosted(state, player, this.depth, ref selectedCol);
+            switch (methodType)
+            {
+                case MethodType.AlphaBeta:
+                    {
+                        int alpha = int.MinValue;
+                        int beta = int.MaxValue;
+                        AlphaBeta(state, player, this.depth, ref selectedCol, ref alpha, ref beta);
+                        break;
+                    }
+                case MethodType.MinMax:
+                    {
+                        MinMax(state, player, this.depth, ref selectedCol);
+                        break;
+                    }
+                case MethodType.MinMaxBoosted:
+                    {
+                        MinMaxBoosted(state, player, this.depth, ref selectedCol);
+                        break;
+                    }
+            }
             return selectedCol;
         }
     }

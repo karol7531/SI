@@ -6,9 +6,11 @@ namespace SI_3
 {
     class Program
     {
-        const int depth = 6, 
+        const int depth = 7, 
             rows = 6, 
             cols = 7;
+        const MethodType methodType = MethodType.AlphaBeta;
+
         static void Main(string[] args)
         {
             AiEngine minMax = new AiEngine(depth);
@@ -87,7 +89,7 @@ namespace SI_3
 
         private static void AiMove(AiEngine minMax, ref State state, bool player)
         {
-            int aiMove = minMax.GetMove(state, player);
+            int aiMove = minMax.GetMove(state, player, methodType);
             state = state.NextState(player, aiMove);
             Console.WriteLine(state);
         }
