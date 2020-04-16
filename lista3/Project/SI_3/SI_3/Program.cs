@@ -16,7 +16,7 @@ namespace SI_3
             stopwatch.Start();
 
             //PlayerVsAi(minMax);
-            AiVsAi(minMax);
+            AiVsAi(minMax, 7);
 
             stopwatch.Stop();
             Console.WriteLine($"Game time: {stopwatch.ElapsedMilliseconds}");
@@ -59,24 +59,27 @@ namespace SI_3
             }
         }
 
-        private static void AiVsAi(MinMax minMax)
+        private static void AiVsAi(MinMax minMax, int start)
         {
             State state = new State(rows, cols);
+            Console.WriteLine("\nAI_1 move:");
+            state = state.NextState(false, start - 1);
+            Console.WriteLine(state);
             while (state.CanPlace())
             {
+                Console.WriteLine("\nAI_2 move:");
+                AiMove(minMax, ref state, true);
+                if (state.Points(true) >= State.pointsWin)
+                {
+                    Console.WriteLine("AI_2 won");
+                    return;
+                }
+
                 Console.WriteLine("\nAI_1 move:");
                 AiMove(minMax, ref state, false);
                 if (state.Points(false) >= State.pointsWin)
                 {
                     Console.WriteLine("AI_1 won");
-                    return;
-                }
-
-                Console.WriteLine("\nAI_2 move:");
-                AiMove(minMax, ref state, true); 
-                if (state.Points(true) >= State.pointsWin)
-                {
-                    Console.WriteLine("AI_2 won");
                     return;
                 }
             }
