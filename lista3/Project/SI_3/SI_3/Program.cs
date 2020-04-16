@@ -11,7 +11,7 @@ namespace SI_3
             cols = 7;
         static void Main(string[] args)
         {
-            MinMax minMax = new MinMax(depth);
+            AiEngine minMax = new AiEngine(depth);
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -23,7 +23,7 @@ namespace SI_3
             Console.ReadKey();
         }
 
-        private static void PlayerVsAi(MinMax minMax)
+        private static void PlayerVsAi(AiEngine minMax)
         {
             Stack<State> stack = new Stack<State>();
             State state = new State(rows, cols);
@@ -59,7 +59,7 @@ namespace SI_3
             }
         }
 
-        private static void AiVsAi(MinMax minMax, int start)
+        private static void AiVsAi(AiEngine minMax, int start)
         {
             State state = new State(rows, cols);
             Console.WriteLine("\nAI_1 move:");
@@ -85,7 +85,7 @@ namespace SI_3
             }
         }
 
-        private static void AiMove(MinMax minMax, ref State state, bool player)
+        private static void AiMove(AiEngine minMax, ref State state, bool player)
         {
             int aiMove = minMax.GetMove(state, player);
             state = state.NextState(player, aiMove);

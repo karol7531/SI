@@ -1,18 +1,17 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace SI_3
 {
-    class MinMax
+    class AiEngine
     {
         private int depth;
 
-        public MinMax(int depth)
+        public AiEngine(int depth)
         {
             this.depth = depth;
         }
 
-        private int FindMove(State state, bool player, int depth, ref int selectedCol)
+        private int MinMax(State state, bool player, int depth, ref int selectedCol)
         {
             int colSelection = 0;
             int stateEval = state.Evaluation(player);
@@ -27,12 +26,11 @@ namespace SI_3
                 if (state.CanPlace(c))
                 {
                     int refNum = 1;
-                    int childEval = FindMove(state.NextState(player, c), !player, depth - 1, ref refNum);
+                    int childEval = MinMax(state.NextState(player, c), !player, depth - 1, ref refNum);
                     if ((player && childEval > eval) || (!player && childEval < eval))
                     {
                         eval = childEval;
                         colSelection = c;
-                        //selectedCol = c;
                     }
                 }
             }
@@ -43,7 +41,7 @@ namespace SI_3
             return eval;
         }
 
-        private int FindMoveBoosted(State state, bool player, int depth, ref int selectedCol)
+        private int MinMaxBoosted(State state, bool player, int depth, ref int selectedCol)
         {
             int colSelection = 0;
             object accessLock = new object();
@@ -54,48 +52,31 @@ namespace SI_3
             }
 
             int eval = player ? int.MinValue : int.MaxValue;
-            if (depth == this.depth)
+            Parallel.For(0, state.cols, (c) =>
             {
-                Parallel.For(0, state.cols,(c) => {
-                    if (state.CanPlace(c))
-                    {
-                        int refNum = 1;
-                        int childEval = FindMoveBoosted(state.NextState(player, c), !player, depth - 1, ref refNum);
-                        lock(accessLock) 
-                        {
-                            if ((player && childEval > eval) || (!player && childEval < eval))
-                            {
-                                eval = childEval;
-                                colSelection = c;
-                            }
-                        }
-                    }
-                });
-                selectedCol = colSelection;
-            }
-            else
-            {
-                for (int c = 0; c < state.cols; c++)
+                if (state.CanPlace(c))
                 {
-                    if (state.CanPlace(c))
+                    int refNum = 1;
+                    int childEval = MinMax(state.NextState(player, c), !player, depth - 1, ref refNum);
+                    lock (accessLock)
                     {
-                        int refNum = 1;
-                        int childEval = FindMoveBoosted(state.NextState(player, c), !player, depth - 1, ref refNum);
                         if ((player && childEval > eval) || (!player && childEval < eval))
                         {
                             eval = childEval;
+                            colSelection = c;
                         }
                     }
                 }
-            }
+            });
+            selectedCol = colSelection;
             return eval;
         }
 
-        public int GetMove(State state, bool player) 
+        public int GetMove(State state, bool player)
         {
             int selectedCol = 0;
-            //FindMove(state, player, this.depth, ref selectedCol);
-            FindMoveBoosted(state, player, this.depth, ref selectedCol);
+            //MinMax(state, player, this.depth, ref selectedCol);
+            MinMaxBoosted(state, player, this.depth, ref selectedCol);
             return selectedCol;
         }
     }
