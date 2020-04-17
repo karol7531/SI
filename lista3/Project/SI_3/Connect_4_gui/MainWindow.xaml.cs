@@ -45,6 +45,7 @@ namespace Connect_4_gui
             aiEngine = new AiEngine(depth);
             InitPanels();
             GamemodeButton.Content = gamemode == Gamemode.PlayerVsAi ? "Player vs Ai" : "Ai vs Ai";
+            MethodButton.Content = methodType == MethodType.MinMax ? MethodType.MinMax.ToString() : MethodType.AlphaBeta.ToString();
         }
 
         protected override void OnContentRendered(EventArgs e)
@@ -301,6 +302,7 @@ namespace Connect_4_gui
         private void SetupParameters()
         {
             gamemode = ((string)GamemodeButton.Content) == "Player vs Ai" ? Gamemode.PlayerVsAi : Gamemode.AiVsAi;
+            methodType = ((string)MethodButton.Content) == MethodType.AlphaBeta.ToString() ? MethodType.AlphaBeta : MethodType.MinMax;
             depth = (int)DifficultySlider.Value;
             aiEngine = new AiEngine(depth);
         }
@@ -309,6 +311,12 @@ namespace Connect_4_gui
         {
             Button button = sender as Button;
             button.Content = (string)button.Content == "Player vs Ai" ? "Ai vs Ai" : "Player vs Ai";
+        }
+
+        private void MethodButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = sender as Button;
+            button.Content = (string)button.Content == MethodType.AlphaBeta.ToString() ? MethodType.MinMax.ToString() : MethodType.AlphaBeta.ToString();
         }
 
     }

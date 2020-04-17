@@ -28,9 +28,11 @@
                     <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" x:Name="GameMode" Text="Gamemode:   " FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
-                <Button Grid.Row="0" Grid.Column="1" x:Name="GamemodeButton" Content=" " Width="150" Style="{StaticResource btnGreen}" Click="GamemodeButton_Click" VerticalAlignment="Center"/>
-                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="Difficulty" Text="Difficulty:" FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
-                <DockPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" >
+                <Button Grid.Row="0" Grid.Column="1" x:Name="GamemodeButton" Content=" " Width="150" Style="{StaticResource btnGray}" Click="GamemodeButton_Click" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="Method" Text="Method:   " FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
+                <Button Grid.Row="1" Grid.Column="1" x:Name="MethodButton" Content=" " Width="150" Style="{StaticResource btnGray}" Click="MethodButton_Click" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" x:Name="Difficulty" Text="Difficulty:" FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
+                <DockPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" >
                     <TextBox Width="20" Text="{Binding ElementName=DifficultySlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" />
                     <Slider x:Name="DifficultySlider" Minimum="1" Maximum="8" VerticalAlignment="Center" IsSnapToTickEnabled="True" Value="6"/>
                 </DockPanel>
