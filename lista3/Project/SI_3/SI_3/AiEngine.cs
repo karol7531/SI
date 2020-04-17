@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Connect_4
 {
     public enum MethodType { MinMax, MinMaxBoosted, AlphaBeta}
-    class AiEngine
+    public class AiEngine
     {
         private int depth;
 

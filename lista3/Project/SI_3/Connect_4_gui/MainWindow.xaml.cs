@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,10 +23,27 @@ namespace Connect_4_gui
         const int depth = 7,
             rows = 6,
             cols = 7;
+        bool playerMove = false;
+        const MethodType methodType = MethodType.AlphaBeta;
         public MainWindow()
         {
             InitializeComponent();
             InitPanels();
+        }
+
+        protected override void OnContentRendered(EventArgs e)
+        {
+            base.OnContentRendered(e);
+            AiEngine minMax = new AiEngine(depth);
+            long time = RunWithStopwatch(() =>
+            {
+                //PlayerVsAi(minMax);
+                new Thread(()=> {
+                    Program.AiVsAi(minMax, 7, (state) => RenderBoard(state), rows, cols, methodType);
+                }).Start();
+                
+            });
+            Console.WriteLine($"Game time: {time}");
         }
 
         public void InitPanels()
@@ -44,13 +63,18 @@ namespace Connect_4_gui
 
         private void RenderBoard(State state)
         {
-            for (int r = 0; r < rows; r++)
+            Application.Current.Dispatcher.Invoke(
+            () =>
             {
-                for (int c = 0; c < cols; c++)
+                for (int r = 0; r < rows; r++)
                 {
-                    ChangePanel(GetPosition(r, c), r, c, state.GetValue(r, c));
+                    for (int c = 0; c < cols; c++)
+                    {
+                        ChangePanel(GetPosition(r, c), r, c, state.GetValue(r, c));
+                    }
                 }
-            }
+            });
+            
         }
 
         private int GetPosition(int row, int col)
@@ -100,7 +124,7 @@ namespace Connect_4_gui
             int row = Grid.GetRow(panel); //calculate row
 
             int pos = BoardGrid.Children.IndexOf(panel);
-            ChangePanel(pos, row, col, true);
+            //ChangePanel(pos, row, col, true);
         }
 
         private void ChangePanel(int pos, int row, int col, bool? player)
@@ -123,6 +147,15 @@ namespace Connect_4_gui
 
             border.Child = coin;
             return border;
+        }
+
+        private static long RunWithStopwatch(Action action)
+        {
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+            action();
+            watch.Stop();
+            return watch.ElapsedMilliseconds;
         }
 
         private readonly Color NullColor = Color.FromArgb(255, 255, 255, 255);
