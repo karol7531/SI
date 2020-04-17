@@ -20,7 +20,7 @@
             return newState;
         }
 
-        internal bool CanPlace(int col)
+        public bool CanPlace(int col)
         {
             return board[0, col] == null;
         }
@@ -39,7 +39,7 @@
             return board[row, col];
         }
 
-        internal State NextState(bool player, int col)
+        public State NextState(bool player, int col)
         {
             State newState = this.Clone();
             for (int r = rows - 1; r >= 0; r--)

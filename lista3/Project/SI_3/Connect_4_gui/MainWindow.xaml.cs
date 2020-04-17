@@ -24,6 +24,8 @@ namespace Connect_4_gui
             rows = 6,
             cols = 7;
         bool playerMove = false;
+        AiEngine minMax = new AiEngine(depth);
+        private State playerAiState = new State(rows, cols);
         const MethodType methodType = MethodType.AlphaBeta;
         public MainWindow()
         {
@@ -34,16 +36,57 @@ namespace Connect_4_gui
         protected override void OnContentRendered(EventArgs e)
         {
             base.OnContentRendered(e);
-            AiEngine minMax = new AiEngine(depth);
-            long time = RunWithStopwatch(() =>
+
+            //PlayerVsAi(minMax);
+            playerMove = true;
+
+            //long time = RunWithStopwatch(() =>
+            //{
+            //    new Thread(() =>
+            //    {
+            //        AiVsAi(7);
+            //    }).Start();
+            //});
+            //Console.WriteLine($"Game time: {time}");
+        }
+
+        private State PlayerMove(int col, State state)
+        {
+            if(playerMove && state.CanPlace(col))
             {
-                //PlayerVsAi(minMax);
-                new Thread(()=> {
-                    Program.AiVsAi(minMax, 7, (state) => RenderBoard(state), rows, cols, methodType);
-                }).Start();
-                
-            });
-            Console.WriteLine($"Game time: {time}");
+                playerMove = false;
+                return state.NextState(false, col);
+            }
+            return null;
+        }
+
+        private bool? AiVsAi(int start)
+        {
+            State state = new State(rows, cols);
+            //Console.WriteLine("\nAI_1 move:");
+            state = state.NextState(false, start - 1);
+            RenderBoard(state);
+            while (state.CanPlace())
+            {
+                //Console.WriteLine("\nAI_2 move:");
+                state = Program.AiMove(minMax, state, true, methodType);
+                RenderBoard(state);
+                if (state.Points(true) >= State.pointsWin)
+                {
+                    //Console.WriteLine("AI_2 won");
+                    return true;
+                }
+
+                //Console.WriteLine("\nAI_1 move:");
+                state = Program.AiMove(minMax, state, false, methodType);
+                RenderBoard(state);
+                if (state.Points(false) >= State.pointsWin)
+                {
+                    //Console.WriteLine("AI_1 won");
+                    return false;
+                }
+            }
+            return null;
         }
 
         public void InitPanels()
@@ -119,12 +162,34 @@ namespace Connect_4_gui
 
         private void ColPanelClickHandler(object sender, MouseButtonEventArgs e)
         {
-            Border panel = sender as Border;
-            int col = Grid.GetColumn(panel);
-            int row = Grid.GetRow(panel); //calculate row
+            if (playerMove)
+            {
+                Border panel = sender as Border;
+                int col = Grid.GetColumn(panel);
+                State playerState = PlayerMove(col, playerAiState);
+                if (playerState != null)
+                {
+                    playerAiState = playerState;
+                    RenderBoard(playerAiState);
+                    if (playerAiState.Points(false) >= State.pointsWin)
+                    {
+                        //Console.WriteLine("Congratulations, you won");
+                        //return;
+                    }
 
-            int pos = BoardGrid.Children.IndexOf(panel);
-            //ChangePanel(pos, row, col, true);
+                    new Thread(() =>
+                    {
+                        playerAiState = Program.AiMove(minMax, playerAiState, true, methodType);
+                        RenderBoard(playerAiState);
+                        if (playerAiState.Points(true) >= State.pointsWin)
+                        {
+                            //Console.WriteLine("AI won");
+                            //return;
+                        }
+                        playerMove = true;
+                    }).Start();                    
+                }
+            }
         }
 
         private void ChangePanel(int pos, int row, int col, bool? player)
