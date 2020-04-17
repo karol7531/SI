@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -18,71 +19,119 @@ using Connect_4;
 
 namespace Connect_4_gui
 {
+    enum Gamemode {PlayerVsAi,AiVsAi}
     public partial class MainWindow : Window
     {
-        const int depth = 7,
-            rows = 6,
+        int depth = 7;
+        const int rows = 6,
             cols = 7;
         bool playerMove = false;
-        AiEngine minMax = new AiEngine(depth);
+        AiEngine aiEngine;
         private State playerAiState = new State(rows, cols);
-        const MethodType methodType = MethodType.AlphaBeta;
+        MethodType methodType = MethodType.AlphaBeta;
+        Gamemode gamemode = Gamemode.PlayerVsAi;
+        BackgroundWorker worker;
+
+        private readonly Color NullColor = Color.FromArgb(255, 255, 255, 255);
+        private readonly Color TrueColor = Color.FromArgb(255, 255, 69, 0);
+        private readonly Color FalseColor = Color.FromArgb(255, 255, 215, 0);
+        private readonly Color BackgroundColor = Color.FromArgb(255, 0, 0, 100);
+
         public MainWindow()
         {
             InitializeComponent();
+            worker = new BackgroundWorker();
+            worker.WorkerSupportsCancellation = true;
+            aiEngine = new AiEngine(depth);
             InitPanels();
+            GamemodeButton.Content = gamemode == Gamemode.PlayerVsAi ? "Player vs Ai" : "Ai vs Ai";
         }
 
         protected override void OnContentRendered(EventArgs e)
         {
             base.OnContentRendered(e);
 
-            //PlayerVsAi(minMax);
-            playerMove = true;
+            ResetButton_Click(null, null);
+        }
 
-            //long time = RunWithStopwatch(() =>
-            //{
-            //    new Thread(() =>
-            //    {
-            //        AiVsAi(7);
-            //    }).Start();
-            //});
-            //Console.WriteLine($"Game time: {time}");
+        private void RunPlayerVsAi()
+        {
+            playerAiState = new State(rows, cols);
+            RenderBoard(playerAiState);
+            SetWhosMove("Your move:");
+            playerMove = true;
+        }
+
+        private void RunAiVsAi()
+        {
+            long time = RunWithStopwatch(() =>
+            {
+                RunOnWorker((w) => AiVsAi(7, w));
+                //BackgroundWorker worker = new BackgroundWorker();
+                //worker.DoWork += (object sender, DoWorkEventArgs e) => { AiVsAi(7); };
+                //worker.RunWorkerAsync();
+                //workers.Add(worker);
+
+                //Thread thread = new Thread(() =>
+                //{
+                //    AiVsAi(7);
+                //});
+                //threads.Add(thread); 
+                //thread.Start();
+            });
+        }
+
+        private void RunOnWorker(Action<BackgroundWorker> action)
+        {
+            worker = new BackgroundWorker();
+            worker.WorkerSupportsCancellation = true;
+            worker.DoWork += (object sender, DoWorkEventArgs e) => action(worker);
+            worker.RunWorkerAsync();
+        }
+
+        private void SetWhosMove(string text)
+        {
+            Application.Current.Dispatcher.Invoke(
+            () =>
+            {
+                WhosMove.Text = text;
+            });
         }
 
         private State PlayerMove(int col, State state)
         {
             if(playerMove && state.CanPlace(col))
             {
-                playerMove = false;
                 return state.NextState(false, col);
             }
             return null;
         }
 
-        private bool? AiVsAi(int start)
+        private bool? AiVsAi(int start, BackgroundWorker w)
         {
             State state = new State(rows, cols);
-            //Console.WriteLine("\nAI_1 move:");
+            SetWhosMove("AI_1 move:");
             state = state.NextState(false, start - 1);
             RenderBoard(state);
             while (state.CanPlace())
-            {
-                //Console.WriteLine("\nAI_2 move:");
-                state = Program.AiMove(minMax, state, true, methodType);
+            {                
+                SetWhosMove("AI_2 move:");
+                state = Program.AiMove(aiEngine, state, true, methodType);
+                if (w.CancellationPending){break;}
                 RenderBoard(state);
                 if (state.Points(true) >= State.pointsWin)
                 {
-                    //Console.WriteLine("AI_2 won");
+                    SetWhosMove("AI_2 won");
                     return true;
                 }
 
-                //Console.WriteLine("\nAI_1 move:");
-                state = Program.AiMove(minMax, state, false, methodType);
+                SetWhosMove("AI_1 move:");
+                state = Program.AiMove(aiEngine, state, false, methodType);
+                if (w.CancellationPending) {break; }
                 RenderBoard(state);
                 if (state.Points(false) >= State.pointsWin)
                 {
-                    //Console.WriteLine("AI_1 won");
+                    SetWhosMove("AI_1 won");
                     return false;
                 }
             }
@@ -116,8 +165,7 @@ namespace Connect_4_gui
                         ChangePanel(GetPosition(r, c), r, c, state.GetValue(r, c));
                     }
                 }
-            });
-            
+            });            
         }
 
         private int GetPosition(int row, int col)
@@ -169,25 +217,32 @@ namespace Connect_4_gui
                 State playerState = PlayerMove(col, playerAiState);
                 if (playerState != null)
                 {
+                    playerMove = false;
                     playerAiState = playerState;
                     RenderBoard(playerAiState);
                     if (playerAiState.Points(false) >= State.pointsWin)
                     {
-                        //Console.WriteLine("Congratulations, you won");
-                        //return;
+                        SetWhosMove("Congratulations, you won");
+                        playerMove = false;
+                        return;
                     }
 
-                    new Thread(() =>
+                    SetWhosMove("Ai move:");
+                    RunOnWorker((w) =>
                     {
-                        playerAiState = Program.AiMove(minMax, playerAiState, true, methodType);
+                        State newState = Program.AiMove(aiEngine, playerAiState, true, methodType);
+                        if (w.CancellationPending) { return; }
+                        else { playerAiState = newState; }
                         RenderBoard(playerAiState);
                         if (playerAiState.Points(true) >= State.pointsWin)
                         {
-                            //Console.WriteLine("AI won");
-                            //return;
+                            SetWhosMove("Ai won");
+                            playerMove = false;
+                            return;
                         }
                         playerMove = true;
-                    }).Start();                    
+                        SetWhosMove("Your move:");
+                    });
                 }
             }
         }
@@ -223,9 +278,38 @@ namespace Connect_4_gui
             return watch.ElapsedMilliseconds;
         }
 
-        private readonly Color NullColor = Color.FromArgb(255, 255, 255, 255);
-        private readonly Color TrueColor = Color.FromArgb(255, 255, 69, 0);
-        private readonly Color FalseColor = Color.FromArgb(255, 255, 215, 0);
-        private readonly Color BackgroundColor = Color.FromArgb(255, 0, 0, 100);
+
+        private void ResetButton_Click(object sender, RoutedEventArgs e)
+        {
+            worker.CancelAsync();
+            SetupParameters();
+            switch (gamemode)
+            {
+                case Gamemode.PlayerVsAi:
+                    {
+                        RunPlayerVsAi();
+                        break;
+                    }
+                case Gamemode.AiVsAi:
+                    {
+                        RunAiVsAi();
+                        break;
+                    }
+            }
+        }
+
+        private void SetupParameters()
+        {
+            gamemode = ((string)GamemodeButton.Content) == "Player vs Ai" ? Gamemode.PlayerVsAi : Gamemode.AiVsAi;
+            depth = (int)DifficultySlider.Value;
+            aiEngine = new AiEngine(depth);
+        }
+
+        private void GamemodeButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = sender as Button;
+            button.Content = (string)button.Content == "Player vs Ai" ? "Ai vs Ai" : "Player vs Ai";
+        }
+
     }
 }

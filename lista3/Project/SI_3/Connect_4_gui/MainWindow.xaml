@@ -5,8 +5,39 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Connect_4_gui"
         mc:Ignorable="d"
-        Title="MainWindow" Height="550" Width="800">
-    <Grid x:Name="BoardGrid" >
-        
+        Title="MainWindow" Height="550" Width="920">
+    <Grid x:Name="BaseGrid">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="0">
+            <TextBlock x:Name="WhosMove" Text=" " FontSize="23" FontWeight="Medium"/>
+            <Grid x:Name="BoardGrid"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1" Margin="20">
+            <TextBlock x:Name="Title" Text="Connect 4" FontSize="38" FontWeight="Medium"  HorizontalAlignment="Center"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" x:Name="GameMode" Text="Gamemode:   " FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
+                <Button Grid.Row="0" Grid.Column="1" x:Name="GamemodeButton" Content=" " Width="150" Style="{StaticResource btnGreen}" Click="GamemodeButton_Click" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" x:Name="Difficulty" Text="Difficulty:" FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
+                <DockPanel Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" >
+                    <TextBox Width="20" Text="{Binding ElementName=DifficultySlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" />
+                    <Slider x:Name="DifficultySlider" Minimum="1" Maximum="8" VerticalAlignment="Center" IsSnapToTickEnabled="True" Value="6"/>
+                </DockPanel>
+            </Grid>
+            <Button x:Name="ResetButton" Content="Reset" Width="100" Style="{StaticResource btnLightRed}" HorizontalAlignment="Center"  Click="ResetButton_Click"/>
+        </StackPanel>
     </Grid>
+
+
 </Window>
