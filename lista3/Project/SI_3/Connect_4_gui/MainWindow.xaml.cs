@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Connect_4;
 
 namespace Connect_4_gui
 {
@@ -30,20 +31,38 @@ namespace Connect_4_gui
         {
             CreateRows();
             CreateColumns();
-            int c = 0;
-            foreach (ColumnDefinition col in BoardGrid.ColumnDefinitions)
+
+            for (int r = 0; r < rows; r++)
             {
-                int r = 0;
-                foreach (RowDefinition row in BoardGrid.RowDefinitions)
+                for (int c = 0; c < cols; c++)
                 {
-                    Border panel = GetPanel(r, c);
-                    int id = BoardGrid.Children.Add(panel);
-
-                    r++;
+                    Border panel = CreatePanel(r, c);
+                    BoardGrid.Children.Add(panel);
                 }
-
-                c++;
             }
+        }
+
+        private void RenderBoard(State state)
+        {
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    ChangePanel(GetPosition(r, c), r, c, state.GetValue(r, c));
+                }
+            }
+        }
+
+        private int GetPosition(int row, int col)
+        {
+            return BoardGrid.Children.IndexOf(GetPannel(row, col));
+        }
+
+        private Border GetPannel(int row, int col)
+        {
+            return BoardGrid.Children
+                .Cast<Border>()
+                .First(e => Grid.GetRow(e) == row && Grid.GetColumn(e) == col);
         }
 
         private void CreateColumns()
@@ -62,7 +81,7 @@ namespace Connect_4_gui
                     new RowDefinition() { Height = GridLength.Auto });
         }
 
-        private Border GetPanel(int rowNum, int colNum, bool? player = null)
+        private Border CreatePanel(int rowNum, int colNum, bool? player = null)
         {
             Border panel = new Border();
             Grid.SetRow(panel, rowNum);
@@ -81,8 +100,13 @@ namespace Connect_4_gui
             int row = Grid.GetRow(panel); //calculate row
 
             int pos = BoardGrid.Children.IndexOf(panel);
+            ChangePanel(pos, row, col, true);
+        }
+
+        private void ChangePanel(int pos, int row, int col, bool? player)
+        {
             BoardGrid.Children.RemoveAt(pos);
-            BoardGrid.Children.Add(GetPanel(row, col, true));
+            BoardGrid.Children.Add(CreatePanel(row, col, player));
         }
 
         private Border GetCoin(bool? player)

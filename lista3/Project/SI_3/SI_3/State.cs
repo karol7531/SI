@@ -1,6 +1,6 @@
 ﻿namespace Connect_4
 {
-    class State
+    public class State
     {
         public const int pointsWin = 100000;
         private bool?[,] board;
@@ -32,6 +32,11 @@
                 if (CanPlace(c)) return true;
             }
             return false;
+        }
+
+        public bool? GetValue(int row, int col)
+        {
+            return board[row, col];
         }
 
         internal State NextState(bool player, int col)
