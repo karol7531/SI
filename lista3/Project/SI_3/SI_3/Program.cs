@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace SI_3
+namespace Connect_4
 {
     class Program
     {

@@ -1,4 +1,4 @@
-﻿namespace SI_3
+﻿namespace Connect_4
 {
     class State
     {

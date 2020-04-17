@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace SI_3
+namespace Connect_4
 {
     public enum MethodType { MinMax, MinMaxBoosted, AlphaBeta}
     class AiEngine
