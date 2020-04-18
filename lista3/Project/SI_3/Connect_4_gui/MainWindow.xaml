@@ -26,6 +26,7 @@
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" x:Name="GameMode" Text="Gamemode:   " FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
                 <Button Grid.Row="0" Grid.Column="1" x:Name="GamemodeButton" Content=" " Width="150" Style="{StaticResource btnGray}" Click="GamemodeButton_Click" VerticalAlignment="Center"/>
@@ -35,6 +36,11 @@
                 <DockPanel Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" >
                     <TextBox Width="20" Text="{Binding ElementName=DifficultySlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" />
                     <Slider x:Name="DifficultySlider" Minimum="1" Maximum="8" VerticalAlignment="Center" IsSnapToTickEnabled="True" Value="6"/>
+                </DockPanel>
+                <TextBlock Grid.Row="3" Grid.Column="0" x:Name="AiStart" Text="Ai start:" FontSize="23" FontWeight="Medium" VerticalAlignment="Center"/>
+                <DockPanel x:Name="AiStartDockPanel" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center" >
+                    <TextBox Width="20" Text="{Binding ElementName=AiStartSlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" DockPanel.Dock="Right" TextAlignment="Right" />
+                    <Slider x:Name="AiStartSlider" Minimum="1" Maximum="7" VerticalAlignment="Center" IsSnapToTickEnabled="True" Value="4"/>
                 </DockPanel>
             </Grid>
             <Button x:Name="ResetButton" Content="Reset" Width="100" Style="{StaticResource btnLightRed}" HorizontalAlignment="Center"  Click="ResetButton_Click"/>

@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Connect_4;
 
@@ -22,14 +14,17 @@ namespace Connect_4_gui
     enum Gamemode {PlayerVsAi,AiVsAi}
     public partial class MainWindow : Window
     {
-        int depth = 7;
+
         const int rows = 6,
             cols = 7;
+        int depth = 7;
+        int aiStartPos = 6;
+        MethodType methodType = MethodType.AlphaBeta;
+        Gamemode gamemode = Gamemode.PlayerVsAi;
+
         bool playerMove = false;
         AiEngine aiEngine;
         private State playerAiState = new State(rows, cols);
-        MethodType methodType = MethodType.AlphaBeta;
-        Gamemode gamemode = Gamemode.PlayerVsAi;
         BackgroundWorker worker;
 
         private readonly Color NullColor = Color.FromArgb(255, 255, 255, 255);
@@ -46,6 +41,8 @@ namespace Connect_4_gui
             InitPanels();
             GamemodeButton.Content = gamemode == Gamemode.PlayerVsAi ? "Player vs Ai" : "Ai vs Ai";
             MethodButton.Content = methodType == MethodType.MinMax ? MethodType.MinMax.ToString() : MethodType.AlphaBeta.ToString();
+            AiStartDockPanel.Visibility = gamemode == Gamemode.PlayerVsAi ? Visibility.Hidden : Visibility.Visible;
+            AiStart.Visibility = gamemode == Gamemode.PlayerVsAi ? Visibility.Hidden : Visibility.Visible;
         }
 
         protected override void OnContentRendered(EventArgs e)
@@ -63,23 +60,13 @@ namespace Connect_4_gui
             playerMove = true;
         }
 
-        private void RunAiVsAi()
+        private long RunAiVsAi()
         {
             long time = RunWithStopwatch(() =>
             {
-                RunOnWorker((w) => AiVsAi(7, w));
-                //BackgroundWorker worker = new BackgroundWorker();
-                //worker.DoWork += (object sender, DoWorkEventArgs e) => { AiVsAi(7); };
-                //worker.RunWorkerAsync();
-                //workers.Add(worker);
-
-                //Thread thread = new Thread(() =>
-                //{
-                //    AiVsAi(7);
-                //});
-                //threads.Add(thread); 
-                //thread.Start();
+                RunOnWorker((w) => AiVsAi(aiStartPos, w));
             });
+            return time;
         }
 
         private void RunOnWorker(Action<BackgroundWorker> action)
@@ -305,12 +292,15 @@ namespace Connect_4_gui
             methodType = ((string)MethodButton.Content) == MethodType.AlphaBeta.ToString() ? MethodType.AlphaBeta : MethodType.MinMax;
             depth = (int)DifficultySlider.Value;
             aiEngine = new AiEngine(depth);
+            if (AiStartDockPanel.Visibility == Visibility.Visible) { aiStartPos = (int)AiStartSlider.Value; } 
         }
 
         private void GamemodeButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
             button.Content = (string)button.Content == "Player vs Ai" ? "Ai vs Ai" : "Player vs Ai";
+            AiStartDockPanel.Visibility = (string)button.Content == "Player vs Ai" ? Visibility.Hidden : Visibility.Visible;
+            AiStart.Visibility = (string)button.Content == "Player vs Ai" ? Visibility.Hidden : Visibility.Visible;
         }
 
         private void MethodButton_Click(object sender, RoutedEventArgs e)
