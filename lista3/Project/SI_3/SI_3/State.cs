@@ -109,7 +109,7 @@ namespace Connect_4
                             + PointsDiagonalForwardNoCorner(player, evalFunc) + PointsDiagonalBackNoCorner(player, evalFunc);
                     }
             }
-            return -1;
+            return 0;
         }
 
         private int PointsHorizontal(bool player, Func<int, int> evalFunc)

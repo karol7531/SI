@@ -13,8 +13,8 @@ namespace Connect_4
             cols = 7;
         const MethodType methodType1 = MethodType.AlphaBeta;
         const MethodType methodType2 = MethodType.MinMax;
-        const HeuristicType heuristicType = HeuristicType.CornersSquare;
-        Gamemode gamemode = Gamemode.AiVsAi;
+        const HeuristicType heuristicType = HeuristicType.CornersRaw;
+        Gamemode gamemode = Gamemode.PlayerVsAi;
 
         long ai1Time, ai2Time;
         int ai1Moves, ai2Moves;

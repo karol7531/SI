@@ -21,6 +21,7 @@ namespace Connect_4_gui
         int aiStartPos = 6;
         MethodType methodType = MethodType.AlphaBeta;
         Gamemode gamemode = Gamemode.PlayerVsAi;
+        HeuristicType heuristicType = HeuristicType.CornersRaw;
 
         bool playerMove = false;
         AiEngine aiEngine;
@@ -107,7 +108,7 @@ namespace Connect_4_gui
                 state = Program.AiMove(aiEngine, state, true, methodType);
                 if (w.CancellationPending){break;}
                 RenderBoard(state);
-                if (state.Points(true) >= State.pointsWin)
+                if (state.Points(true, heuristicType) >= State.pointsWin)
                 {
                     SetWhosMove("AI_2 won");
                     return true;
@@ -117,7 +118,7 @@ namespace Connect_4_gui
                 state = Program.AiMove(aiEngine, state, false, methodType);
                 if (w.CancellationPending) {break; }
                 RenderBoard(state);
-                if (state.Points(false) >= State.pointsWin)
+                if (state.Points(false, heuristicType) >= State.pointsWin)
                 {
                     SetWhosMove("AI_1 won");
                     return false;
@@ -208,7 +209,7 @@ namespace Connect_4_gui
                     playerMove = false;
                     playerAiState = playerState;
                     RenderBoard(playerAiState);
-                    if (playerAiState.Points(false) >= State.pointsWin)
+                    if (playerAiState.Points(false, heuristicType) >= State.pointsWin)
                     {
                         SetWhosMove("Congratulations, you won");
                         playerMove = false;
@@ -222,7 +223,7 @@ namespace Connect_4_gui
                         if (w.CancellationPending) { return; }
                         else { playerAiState = newState; }
                         RenderBoard(playerAiState);
-                        if (playerAiState.Points(true) >= State.pointsWin)
+                        if (playerAiState.Points(true, heuristicType) >= State.pointsWin)
                         {
                             SetWhosMove("Ai won");
                             playerMove = false;
