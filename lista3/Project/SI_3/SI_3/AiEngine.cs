@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Threading.Tasks;
 
 namespace Connect_4
 {
-    public enum MethodType { MinMax, MinMaxBoosted, AlphaBeta}
+    public enum MethodType { MinMax, AlphaBeta}
+
     public class AiEngine
     {
         private int depth;
@@ -13,10 +13,10 @@ namespace Connect_4
             this.depth = depth;
         }
 
-        private int MinMax(State state, bool player, int depth, ref int selectedCol)
+        private int MinMax(State state, bool player, int depth, ref int selectedCol, HeuristicType heuristicType)
         {
             int colSelection = 0;
-            int stateEval = state.Evaluation(player);
+            int stateEval = state.Evaluation(player, heuristicType);
             if (depth == 0 || stateEval == State.pointsWin || stateEval == -State.pointsWin)
             {
                 return stateEval;
@@ -28,7 +28,7 @@ namespace Connect_4
                 if (state.CanPlace(c))
                 {
                     int refNum = 1;
-                    int childEval = MinMax(state.NextState(player, c), !player, depth - 1, ref refNum);
+                    int childEval = MinMax(state.NextState(player, c), !player, depth - 1, ref refNum, heuristicType);
                     if ((player && childEval > eval) || (!player && childEval < eval))
                     {
                         eval = childEval;
@@ -43,43 +43,12 @@ namespace Connect_4
             return eval;
         }
 
-        private int MinMaxBoosted(State state, bool player, int depth, ref int selectedCol)
-        {
-            int colSelection = 0;
-            object accessLock = new object();
-            int stateEval = state.Evaluation(player);
-            if (depth == 0 || stateEval == State.pointsWin || stateEval == -State.pointsWin)
-            {
-                return stateEval;
-            }
-
-            int eval = player ? int.MinValue : int.MaxValue;
-            Parallel.For(0, state.cols, (c) =>
-            {
-                if (state.CanPlace(c))
-                {
-                    int refNum = 1;
-                    int childEval = MinMax(state.NextState(player, c), !player, depth - 1, ref refNum);
-                    lock (accessLock)
-                    {
-                        if ((player && childEval > eval) || (!player && childEval < eval))
-                        {
-                            eval = childEval;
-                            colSelection = c;
-                        }
-                    }
-                }
-            });
-            selectedCol = colSelection;
-            return eval;
-        }
-
-        private int AlphaBeta(State state, bool player, int depth, ref int selectedCol, ref int alpha, ref int beta)
+        private int AlphaBeta(State state, bool player, int depth, ref int selectedCol, ref int alpha, ref int beta, HeuristicType heuristicType)
         {
             int colSelection = 0;
             alpha = int.MinValue;
             beta = int.MaxValue;
-            int stateEval = state.Evaluation(player);
+            int stateEval = state.Evaluation(player, heuristicType);
             if (depth == 0 || stateEval == State.pointsWin || stateEval == -State.pointsWin)
             {
                 return stateEval;
@@ -93,7 +62,7 @@ namespace Connect_4
                     int refNum = 1;
                     int childAlpha = alpha;
                     int childBeta = beta;
-                    int childEval = AlphaBeta(state.NextState(player, c), !player, depth - 1, ref refNum, ref childAlpha, ref childBeta);
+                    int childEval = AlphaBeta(state.NextState(player, c), !player, depth - 1, ref refNum, ref childAlpha, ref childBeta, heuristicType);
                     if ((player && childEval > eval) || (!player && childEval < eval))
                     {
                         eval = childEval;
@@ -111,7 +80,7 @@ namespace Connect_4
             return eval;
         }
 
-        public int GetMove(State state, bool player, MethodType methodType)
+        public int GetMove(State state, bool player, MethodType methodType, HeuristicType heuristicType)
         {
             int selectedCol = 0;
             switch (methodType)
@@ -120,17 +89,12 @@ namespace Connect_4
                     {
                         int alpha = int.MinValue;
                         int beta = int.MaxValue;
-                        AlphaBeta(state, player, this.depth, ref selectedCol, ref alpha, ref beta);
+                        AlphaBeta(state, player, this.depth, ref selectedCol, ref alpha, ref beta, heuristicType);
                         break;
                     }
                 case MethodType.MinMax:
                     {
-                        MinMax(state, player, this.depth, ref selectedCol);
-                        break;
-                    }
-                case MethodType.MinMaxBoosted:
-                    {
-                        MinMaxBoosted(state, player, this.depth, ref selectedCol);
+                        MinMax(state, player, this.depth, ref selectedCol, heuristicType);
                         break;
                     }
             }

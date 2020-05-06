@@ -1,5 +1,8 @@
-﻿namespace Connect_4
+﻿using System;
+
+namespace Connect_4
 {
+    public enum HeuristicType { NoCornersRaw, NoCornersSquare, CornersRaw, CornersSquare }
     public class State
     {
         public const int pointsWin = 100000;
@@ -67,21 +70,49 @@
             return output;
         }
 
-        public int Evaluation(bool player)
+        public int Evaluation(bool player, HeuristicType heuristicType)
         {
-            int truePoints = Points(true);
+            int truePoints = Points(true, heuristicType);
             if (truePoints >= pointsWin) return pointsWin;
-            int falsePoints = Points(false);
+            int falsePoints = Points(false, heuristicType);
             if (falsePoints >= pointsWin) return - pointsWin;
             return truePoints - falsePoints;
         }
 
-        public int Points(bool player)
+        public int Points(bool player, HeuristicType heuristicType)
         {
-            return PointsHorizontal(player) + PointsVertical(player) + PointsDiagonalForward(player) + PointsDiagonalBack(player);
+            Func<int, int> evalFunc;
+            switch (heuristicType)
+            {
+                case HeuristicType.CornersRaw:
+                    {
+                        evalFunc = InRowEval;
+                        return PointsHorizontal(player, evalFunc) + PointsVertical(player, evalFunc)
+                            + PointsDiagonalForward(player, evalFunc) + PointsDiagonalBack(player, evalFunc);
+                    }
+                case HeuristicType.NoCornersRaw:
+                    {
+                        evalFunc = InRowEval;
+                        return PointsHorizontal(player, evalFunc) + PointsVertical(player, evalFunc)
+                            + PointsDiagonalForwardNoCorner(player, evalFunc) + PointsDiagonalBackNoCorner(player, evalFunc);
+                    }
+                case HeuristicType.CornersSquare:
+                    {
+                        evalFunc = InRowEvalSquare;
+                        return PointsHorizontal(player, evalFunc) + PointsVertical(player, evalFunc)
+                            + PointsDiagonalForward(player, evalFunc) + PointsDiagonalBack(player, evalFunc);
+                    }
+                case HeuristicType.NoCornersSquare:
+                    {
+                        evalFunc = InRowEvalSquare;
+                        return PointsHorizontal(player, evalFunc) + PointsVertical(player, evalFunc)
+                            + PointsDiagonalForwardNoCorner(player, evalFunc) + PointsDiagonalBackNoCorner(player, evalFunc);
+                    }
+            }
+            return -1;
         }
 
-        private int PointsHorizontal(bool player)
+        private int PointsHorizontal(bool player, Func<int, int> evalFunc)
         {
             int points = 0;
             for (int r = 0; r < rows; r++)
@@ -90,14 +121,27 @@
                 for (int c = 0; c < cols; c++)
                 {
                     inRow = board[r, c] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return pointsWin;
-                    points += inRow;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
                 }
             }
             return points;
         }
 
-        private int PointsVertical(bool player)
+        private int InRowEval(int inRow)
+        {
+            if (inRow == 4) return pointsWin;
+            return inRow;
+        }
+
+        private int InRowEvalSquare(int inRow)
+        {
+            if (inRow == 4) return pointsWin;
+            return inRow * inRow;
+        }
+
+        private int PointsVertical(bool player, Func<int, int> evalFunc)
         {
             int points = 0;
             for (int c = 0; c < cols; c++)
@@ -106,14 +150,15 @@
                 for (int r = 0; r < rows; r++)
                 {
                     inRow = board[r, c] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return pointsWin;
-                    points += inRow;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
                 }
             }
             return points;
         }
 
-        private int PointsDiagonalForward(bool player)
+        private int PointsDiagonalForwardNoCorner(bool player, Func<int, int> evalFunc)
         {
             int points = 0;
             for (int r = 3; r < rows; r++)
@@ -124,8 +169,9 @@
                 while (i >= 0 && j < cols)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return pointsWin;
-                    points += inRow;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
                     i--;
                     j++;
                 }
@@ -138,8 +184,9 @@
                 while (i >= 0 && j < cols)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return pointsWin;
-                    points += inRow;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
                     i--;
                     j++;
                 }
@@ -147,7 +194,43 @@
             return points;
         }
 
-        private int PointsDiagonalBack(bool player)
+        private int PointsDiagonalForward(bool player, Func<int, int> evalFunc)
+        {
+            int points = 0;
+            for (int r = 0; r < rows; r++)
+            {
+                int inRow = 0;
+                int i = r;
+                int j = 0;
+                while (i >= 0 && j < cols)
+                {
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
+                    i--;
+                    j++;
+                }
+            }
+            for (int c = 1; c < cols; c++)
+            {
+                int inRow = 0;
+                int i = rows - 1;
+                int j = c;
+                while (i >= 0 && j < cols)
+                {
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
+                    i--;
+                    j++;
+                }
+            }
+            return points;
+        }
+
+        private int PointsDiagonalBackNoCorner(bool player, Func<int, int> evalFunc)
         {
             int points = 0;
             for (int r = 3; r < rows; r++)
@@ -158,8 +241,9 @@
                 while (i >= 0 && j >= 0)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return pointsWin;
-                    points += inRow;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
                     i--;
                     j--;
                 }
@@ -172,8 +256,45 @@
                 while (i >= 0 && j >= 0)
                 {
                     inRow = board[i, j] == player ? inRow + 1 : 0;
-                    if (inRow == 4) return pointsWin;
-                    points += inRow;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
+                    i--;
+                    j--;
+                }
+            }
+            return points;
+        }
+
+        private int PointsDiagonalBack(bool player, Func<int, int> evalFunc)
+        {
+            int points = 0;
+            for (int r = 0; r < rows; r++)
+            {
+                int inRow = 0;
+                int i = r;
+                int j = cols - 1;
+                while (i >= 0 && j >= 0)
+                {
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
+                    i--;
+                    j--;
+                }
+            }
+            for (int c = cols - 2; c > 0; c--)
+            {
+                int inRow = 0;
+                int i = rows - 1;
+                int j = c;
+                while (i >= 0 && j >= 0)
+                {
+                    inRow = board[i, j] == player ? inRow + 1 : 0;
+                    int evalResult = evalFunc(inRow);
+                    if (evalResult == pointsWin) return evalResult;
+                    points += evalResult;
                     i--;
                     j--;
                 }
