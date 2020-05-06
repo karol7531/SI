@@ -45,7 +45,7 @@ namespace Connect_4
 
         private int AlphaBeta(State state, bool player, int depth, ref int selectedCol, ref int alpha, ref int beta, HeuristicType heuristicType)
         {
-            int colSelection = 0;
+            int colSelection = 6;
             alpha = int.MinValue;
             beta = int.MaxValue;
             int stateEval = state.Evaluation(player, heuristicType);

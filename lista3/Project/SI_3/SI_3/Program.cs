@@ -8,16 +8,16 @@ namespace Connect_4
     public class Program
     {
         const int runs = 10;
-        const int depth = 6,
+        const int depth = 1,
             rows = 6,
             cols = 7;
         const MethodType methodType1 = MethodType.AlphaBeta;
-        const MethodType methodType2 = MethodType.MinMax;
+        const MethodType methodType2 = MethodType.AlphaBeta;
         const HeuristicType heuristicType = HeuristicType.CornersRaw;
-        Gamemode gamemode = Gamemode.PlayerVsAi;
+        Gamemode gamemode = Gamemode.AiVsAi;
 
         long ai1Time, ai2Time;
-        int ai1Moves, ai2Moves;
+        int ai1Moves, ai2Moves, ai1Wins, ai2Wins;
 
         static void Main(string[] args)
         {
@@ -28,7 +28,8 @@ namespace Connect_4
 
         private void RunProgram()
         {
-            AiEngine minMax = new AiEngine(depth);
+            AiEngine aiEngine1 = new AiEngine(4);
+            AiEngine aiEngine2 = new AiEngine(8);
             ResetParams();
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -36,13 +37,13 @@ namespace Connect_4
 
             if (gamemode == Gamemode.PlayerVsAi)
             {
-                PlayerVsAi(minMax);
+                PlayerVsAi(aiEngine1);
             }
             else if (gamemode == Gamemode.AiVsAi)
             {
-                for (int i = 0; i < runs; i++)
+                for (int i = 1; i <= 7; i++)
                 {
-                    AiVsAi(minMax, random.Next(7) + 1);
+                    AiVsAi(aiEngine1, aiEngine2, i);
                 }
             }
             PrintResults();
@@ -61,6 +62,8 @@ namespace Connect_4
             Console.WriteLine("Ai_2 Time:\t" + ai2Time);
             Console.WriteLine("Ai_1 AvgTime:\t" + ai1Time / ai1Moves);
             Console.WriteLine("Ai_2 AvgTime:\t" + ai2Time / ai2Moves);
+            Console.WriteLine("Ai_1 Wins: \t" + ai1Wins);
+            Console.WriteLine("Ai_2 Wins: \t" + ai2Wins);
         }
 
         private void ResetParams()
@@ -108,7 +111,7 @@ namespace Connect_4
             }
         }
 
-        private bool? AiVsAi(AiEngine aiEngine, int start)
+        private bool? AiVsAi(AiEngine aiEngine1, AiEngine aiEngine2, int start)
         {
             State state = new State(rows, cols);
             Console.WriteLine("\nAI_1 move:");
@@ -117,28 +120,30 @@ namespace Connect_4
             while (state.CanPlace())
             {
                 Console.WriteLine("\nAI_2 move:");
-                ai1Time += RunWithStopwatch(() =>
+                ai2Time += RunWithStopwatch(() =>
                 {
-                    state = AiMove(aiEngine, state, true, methodType1);
+                    state = AiMove(aiEngine2, state, true, methodType2);
                 });
-                ai1Moves++;
+                ai2Moves++;
                 Console.WriteLine(state);
                 if (state.Points(true, heuristicType) >= State.pointsWin)
                 {
                     Console.WriteLine("AI_2 won");
+                    ai2Wins++;
                     return true;
                 }
 
                 Console.WriteLine("\nAI_1 move:");
-                ai2Time += RunWithStopwatch(() => 
+                ai1Time += RunWithStopwatch(() => 
                 { 
-                    state = AiMove(aiEngine, state, false, methodType2); 
+                    state = AiMove(aiEngine1, state, false, methodType1); 
                 });
-                ai2Moves ++;
+                ai1Moves ++;
                 Console.WriteLine(state);
                 if (state.Points(false, heuristicType) >= State.pointsWin)
                 {
                     Console.WriteLine("AI_1 won");
+                    ai1Wins++;
                     return false;
                 }
             }
