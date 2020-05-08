@@ -8,10 +8,10 @@ namespace Connect_4
     public class Program
     {
         const int runs = 10;
-        const int depth = 1,
+        const int depth = 6,
             rows = 6,
             cols = 7;
-        const MethodType methodType1 = MethodType.AlphaBeta;
+        const MethodType methodType1 = MethodType.MinMax;
         const MethodType methodType2 = MethodType.AlphaBeta;
         const HeuristicType heuristicType = HeuristicType.CornersRaw;
         Gamemode gamemode = Gamemode.AiVsAi;
@@ -28,8 +28,8 @@ namespace Connect_4
 
         private void RunProgram()
         {
-            AiEngine aiEngine1 = new AiEngine(4);
-            AiEngine aiEngine2 = new AiEngine(8);
+            AiEngine aiEngine1 = new AiEngine(depth);
+            AiEngine aiEngine2 = new AiEngine(depth);
             ResetParams();
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -125,9 +125,10 @@ namespace Connect_4
                     state = AiMove(aiEngine2, state, true, methodType2);
                 });
                 ai2Moves++;
-                Console.WriteLine(state);
+                //Console.WriteLine(state);
                 if (state.Points(true, heuristicType) >= State.pointsWin)
                 {
+                    Console.WriteLine(state);
                     Console.WriteLine("AI_2 won");
                     ai2Wins++;
                     return true;
@@ -139,9 +140,10 @@ namespace Connect_4
                     state = AiMove(aiEngine1, state, false, methodType1); 
                 });
                 ai1Moves ++;
-                Console.WriteLine(state);
+                //Console.WriteLine(state);
                 if (state.Points(false, heuristicType) >= State.pointsWin)
                 {
+                    Console.WriteLine(state);
                     Console.WriteLine("AI_1 won");
                     ai1Wins++;
                     return false;
