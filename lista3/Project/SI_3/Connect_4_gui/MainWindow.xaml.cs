@@ -21,10 +21,11 @@ namespace Connect_4_gui
         int aiStartPos = 6;
         MethodType methodType = MethodType.AlphaBeta;
         Gamemode gamemode = Gamemode.PlayerVsAi;
-        HeuristicType heuristicType = HeuristicType.CornersRaw;
+        HeuristicType heuristicType = HeuristicType.NoCornersSquare;
 
         bool playerMove = false;
         AiEngine aiEngine;
+        Program program;
         private State playerAiState = new State(rows, cols);
         BackgroundWorker worker;
 
@@ -39,6 +40,7 @@ namespace Connect_4_gui
             worker = new BackgroundWorker();
             worker.WorkerSupportsCancellation = true;
             aiEngine = new AiEngine(depth);
+            program = new Program();
             InitPanels();
             GamemodeButton.Content = gamemode == Gamemode.PlayerVsAi ? "Player vs Ai" : "Ai vs Ai";
             MethodButton.Content = methodType == MethodType.MinMax ? MethodType.MinMax.ToString() : MethodType.AlphaBeta.ToString();
@@ -105,7 +107,7 @@ namespace Connect_4_gui
             while (state.CanPlace())
             {                
                 SetWhosMove("AI_2 move:");
-                state = Program.AiMove(aiEngine, state, true, methodType);
+                state = program.AiMove(aiEngine, state, true, methodType, heuristicType);
                 if (w.CancellationPending){break;}
                 RenderBoard(state);
                 if (state.Points(true, heuristicType) >= State.pointsWin)
@@ -115,7 +117,7 @@ namespace Connect_4_gui
                 }
 
                 SetWhosMove("AI_1 move:");
-                state = Program.AiMove(aiEngine, state, false, methodType);
+                state = program.AiMove(aiEngine, state, false, methodType, heuristicType);
                 if (w.CancellationPending) {break; }
                 RenderBoard(state);
                 if (state.Points(false, heuristicType) >= State.pointsWin)
@@ -219,7 +221,7 @@ namespace Connect_4_gui
                     SetWhosMove("Ai move:");
                     RunOnWorker((w) =>
                     {
-                        State newState = Program.AiMove(aiEngine, playerAiState, true, methodType);
+                        State newState = program.AiMove(aiEngine, playerAiState, true, methodType, heuristicType);
                         if (w.CancellationPending) { return; }
                         else { playerAiState = newState; }
                         RenderBoard(playerAiState);

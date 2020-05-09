@@ -7,6 +7,7 @@ namespace Connect_4
     public class AiEngine
     {
         private int depth;
+        private int nodesVisited = 0;
 
         public AiEngine(int depth)
         {
@@ -15,7 +16,8 @@ namespace Connect_4
 
         private int MinMax(State state, bool player, int depth, ref int selectedCol, HeuristicType heuristicType)
         {
-            int colSelection = 0;
+            nodesVisited++;
+            int colSelection = state.cols - 1;
             int stateEval = state.Evaluation(player, heuristicType);
             if (depth == 0 || stateEval == State.pointsWin || stateEval == -State.pointsWin)
             {
@@ -39,13 +41,16 @@ namespace Connect_4
             if (depth == this.depth)
             {
                 selectedCol = colSelection;
+                if (!state.CanPlace(colSelection))
+                    selectedCol = -1;
             }
             return eval;
         }
 
         private int AlphaBeta(State state, bool player, int depth, ref int selectedCol, int alpha, int beta, HeuristicType heuristicType)
         {
-            int colSelection = 0;
+            nodesVisited++;
+            int colSelection = state.cols - 1;
             int stateEval = state.Evaluation(player, heuristicType);
             if (depth == 0 || stateEval == State.pointsWin || stateEval == -State.pointsWin)
             {
@@ -72,11 +77,13 @@ namespace Connect_4
             if (depth == this.depth)
             {
                 selectedCol = colSelection;
+                if (!state.CanPlace(colSelection))
+                    selectedCol = -1;
             }
             return eval;
         }
 
-        public int GetMove(State state, bool player, MethodType methodType, HeuristicType heuristicType)
+        public int GetMove(State state, bool player, MethodType methodType, HeuristicType heuristicType, out int nodesVisited)
         {
             int selectedCol = 0;
             switch (methodType)
@@ -94,7 +101,20 @@ namespace Connect_4
                         break;
                     }
             }
+            nodesVisited = this.nodesVisited;
+            this.nodesVisited = 0;
+            if (selectedCol == -1) selectedCol = FixSelectedCol(state);
             return selectedCol;
+        }
+
+        private int FixSelectedCol(State state)
+        {
+            for (int c = 0; c < state.cols; c++)
+            {
+                if (state.CanPlace(c))
+                    return c;
+            }
+            return 0;
         }
     }
 }
