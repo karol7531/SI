@@ -1,16 +1,14 @@
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.List;
-import java.util.TreeSet;
 
 public class ArffComposer {
     public static final String RELATION = "WikiClassification";
     public static final String TEXT_ATTRIBUTE = "text";
-    public static final String LABEL_ATTRIBUTE = "class";
+    public static final String LABEL_ATTRIBUTE = "_class_";
 
     public static File SaveFilesAsArff(String directory, String filename){
         ArrayList<String> data =  new ArrayList<>();
@@ -23,6 +21,7 @@ public class ArffComposer {
             labels.add(label);
             String fileContent = GetFileContent(p);
             fileContent = fileContent.replaceAll("\\n|\\r", " ");
+            fileContent = fileContent.replaceAll("\"", "\'");
             data.add("\"" + fileContent + "\", " + label);
             progress++;
             if(progress % (paths.size() / 10) == 0)
