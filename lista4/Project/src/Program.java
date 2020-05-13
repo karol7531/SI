@@ -1,39 +1,37 @@
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayes;
-import weka.core.Debug;
+import weka.classifiers.trees.J48;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
 import weka.filters.Filter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
 import java.io.*;
+import java.util.Random;
 
 public class Program {
-    private static final String ARFF = ".arff";
-    private static final String TRAIN_FOLDER_PATH = "C:\\Users\\User\\Desktop\\Ja\\PeWueR\\sem_6\\Sztuczna inteligencja\\lista4\\wiki_train_34_categories_data";
-    private static final String TEST_FOLDER_PATH = "C:\\Users\\User\\Desktop\\Ja\\PeWueR\\sem_6\\Sztuczna inteligencja\\lista4\\wiki_test_34_categories_data";
-    private static final String TRAINSET = "train";
-    private static final String TESTSET = "test";
-    private static final String TRAINSET_FILTERED = "train_filtered";
-    private static final String TESTSET_FILTERED = "test_filtered";
+    public static final String ARFF = ".arff";
+    private static final String DATA_FOLDER_PATH = "C:\\Users\\User\\Desktop\\Ja\\PeWueR\\sem_6\\Sztuczna inteligencja\\lista4\\data";
+    private static final String COMPOSED_DATASET = "composed_dataset";
+    private static final String DATASET = "dataset";
+    private static final int CROSS_FOLDS_NUM = 10;
 
     public static void main(String[] args) throws Exception {
-        Instances trainInstances = GetTrainInstances();
-        Log("NaiveBayes");
-        NaiveBayes naiveBayes = new NaiveBayes();
-        naiveBayes.buildClassifier(trainInstances);
+        Instances data = GetInstances();
+        data.setClassIndex(0);
 
-        Instances testInstances = GetTestInstances();
-        Evaluation evaluation = new Evaluation(testInstances);
-        evaluation.evaluateModel(naiveBayes, testInstances);
+        Log("Evaluation NaiveBayes");
+        Evaluation evaluation = new Evaluation(data);
+        evaluation.crossValidateModel(new NaiveBayes(), data, CROSS_FOLDS_NUM, new Random());
         PrintEvaluation(evaluation);
 
-
-
-//        Log("Save Instances");
-//        boolean saved = SaveInstances(dataset, "train_filtered");
-//        System.out.println(saved);
+        Log("Evaluation J48");
+        evaluation = new Evaluation(data);
+        evaluation.crossValidateModel(new J48(), data, CROSS_FOLDS_NUM, new Random());
+        PrintEvaluation(evaluation);
     }
+
+
 
     private static void PrintEvaluation(Evaluation evaluation) {
         Log("Precision:");
@@ -46,29 +44,24 @@ public class Program {
         System.out.println(evaluation.errorRate());
     }
 
-    private static Instances GetTestInstances() throws IOException {
-        return GetInstances(TESTSET_FILTERED, TESTSET, TEST_FOLDER_PATH);
-    }
-
-    private static Instances GetTrainInstances() throws IOException {
-        return GetInstances(TRAINSET_FILTERED, TRAINSET, TRAIN_FOLDER_PATH);
-    }
-
-    private static Instances GetInstances(String filteredFileName, String basicFileName, String folderPath) throws IOException{
-        if(new File(filteredFileName + ARFF).isFile()){
-            Log("found filtered instances file");
-            return new Instances(new BufferedReader(new FileReader(filteredFileName + ARFF)));
+    private static Instances GetInstances() throws IOException{
+        if(new File(DATASET + ARFF).isFile()){
+            Log("reading dataset file");
+            return new Instances(new BufferedReader(new FileReader(DATASET + ARFF)));
         }
-        if (!new File(basicFileName + ARFF).isFile()){
-            Log("train arff composer");
-            ArffComposer.SaveFilesAsArff(folderPath, basicFileName);
+        if (!new File(COMPOSED_DATASET + ARFF).isFile()){
+            Log("composing dataset");
+            ArffComposer.SaveFilesAsArff(DATA_FOLDER_PATH, COMPOSED_DATASET);
         }
-        Log("Read train instances");
-        Instances result = new Instances(new BufferedReader(new FileReader(basicFileName + ARFF)));
-        Log("train setClassIndex");
-        result.setClassIndex(result.numAttributes() - 1);
-        Log("train StringWordVectorFilter");
-        return StringWordVectorFilter(result);
+        Log("Reading composed dataset instances");
+        Instances result = new Instances(new BufferedReader(new FileReader(COMPOSED_DATASET + ARFF)));
+//        Log("setting ClassIndex");
+//        result.setClassIndex(result.numAttributes() - 1);
+        Log("applying StringWordVectorFilter");
+        result = StringWordVectorFilter(result);
+        Log("Saving dataset");
+        SaveInstances(result, DATASET);
+        return result;
     }
 
     private static void SaveInstances(Instances dataset, String filename) throws IOException {

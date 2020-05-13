@@ -25,7 +25,7 @@ public class ArffComposer {
             data.add("\"" + fileContent + "\", " + label);
             progress++;
             if(progress % (paths.size() / 10) == 0)
-                System.out.println(progress * 10 / (paths.size() / 10) + "%");
+                System.out.print(progress * 10 / (paths.size() / 10) + "%\t");
         }
         File result = ComposeArff(data, labels, filename);
         System.out.println(result.getAbsolutePath());
