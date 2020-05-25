@@ -1,0 +1,20 @@
+    private static final int CROSS_FOLDS_NUM = 5;
+    private static final int WORDS_TO_KEEP = 4000;
+    private static final boolean OUTPUT_WORD_COUNTS = true;
+    private static final boolean IDF_TRANSFORM = true;
+    private static final boolean TF_TRANSFORM = false;
+    private static final Stemmer STEMMER = new IteratedLovinsStemmer();
+    private static final AttributeSelectionType ATTRIBUTE_SELECTION_TYPE = AttributeSelectionType.Ranker;
+    private static final double RANKER_THRESHOLD = 0.0;
+
+
+Correctly Classified Instances        8777               89.2244 %
+Incorrectly Classified Instances      1060               10.7756 %
+Kappa statistic                          0.8889
+Mean absolute error                      0.0063
+Root mean squared error                  0.0788
+Relative absolute error                 11.1112 %
+Root relative squared error             46.65   %
+Total Number of Instances             9837     
+
+Total NB time: 939747

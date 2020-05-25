@@ -22,6 +22,7 @@ public class ArffComposer {
             String fileContent = GetFileContent(p);
             fileContent = fileContent.replaceAll("\\n|\\r", " ");
             fileContent = fileContent.replaceAll("\"", "\'");
+            fileContent = fileContent.toLowerCase();
             data.add("\"" + fileContent + "\", " + label);
             progress++;
             if(progress % (paths.size() / 10) == 0)

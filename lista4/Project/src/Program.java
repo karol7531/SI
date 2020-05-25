@@ -2,10 +2,11 @@ import weka.attributeSelection.InfoGainAttributeEval;
 import weka.attributeSelection.Ranker;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.NaiveBayesMultinomial;
+import weka.classifiers.trees.J48;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
-import weka.core.stemmers.IteratedLovinsStemmer;
+import weka.core.stemmers.*;
 import weka.filters.Filter;
 import weka.filters.supervised.attribute.AttributeSelection;
 import weka.filters.unsupervised.attribute.StringToWordVector;
@@ -13,46 +14,60 @@ import weka.filters.unsupervised.attribute.StringToWordVector;
 import java.io.*;
 import java.util.Random;
 
+enum AttributeSelectionType {Ranker}
+
 public class Program {
     public static final String ARFF = ".arff";
-//    private static final String DATA_FOLDER_PATH = "C:\\Users\\User\\Desktop\\Ja\\PeWueR\\sem_6\\Sztuczna inteligencja\\lista4\\data";
-//    private static final String COMPOSED_DATASET = "composed_dataset";
-//    private static final String DATASET = "dataset";
-//    private static final String NB_EVAL = "NaiveBayes.eval";
-//    private static final String DT_EVAL = "RandomForest.eval";
-
-    private static final String DATA_FOLDER_PATH = "C:\\Users\\User\\Desktop\\Ja\\PeWueR\\sem_6\\Sztuczna inteligencja\\lista4\\data25";
-    private static final String COMPOSED_DATASET = "composed_dataset25";
-    private static final String DATASET = "dataset25";
-    private static final String NB_EVAL = "NaiveBayes25.eval";
-    private static final String DT_EVAL = "RandomForest25.eval";
+    public static final String EVAL = ".eval";
     private static final int CROSS_FOLDS_NUM = 5;
-    private static final int WORDS_TO_KEEP = 500;
+    private static final int WORDS_TO_KEEP = 4000;
+    private static final boolean OUTPUT_WORD_COUNTS = true;
+    private static final boolean IDF_TRANSFORM = true;
+    private static final boolean TF_TRANSFORM = false;
+    private static final Stemmer STEMMER = new IteratedLovinsStemmer();
+    private static final AttributeSelectionType ATTRIBUTE_SELECTION_TYPE = AttributeSelectionType.Ranker;
     private static final double RANKER_THRESHOLD = 0.0;
+
+    private static final String filenameend = "best";
+    private static final String DATA_FOLDER_PATH = "C:\\Users\\User\\Desktop\\Ja\\PeWueR\\sem_6\\Sztuczna inteligencja\\lista4\\data";
+    private static final String COMPOSED_DATASET = "composed_dataset";
+    private static final String DATASET = "dataset" + "_" + filenameend;
+    private static final String NB_EVAL = "NaiveBayes" + "_" + filenameend + EVAL;
+    private static final String DT_EVAL = "J48" + "_" + filenameend + EVAL;
+
     private static final boolean EVALUATE = true;
-    private static final boolean READ_EVAL = false;
+    private static final boolean READ_DATASET = false;
 
 // wybieranie metody ewaluacji z grupy bayes i dt ?
 //    parametry RandomForest
 //        parametry StringToWordVectorFilter -> badanie wpływu dodania stemera; idf tf; WORDS_TO_KEEP
 //          parametry AttributeSelectionFilter -> threshold
 
-
     public static void main(String[] args) throws Exception {
         if(EVALUATE){
+            long timeStart = System.currentTimeMillis();
             Instances data = GetInstances();
+            long timeGetInstances = System.currentTimeMillis();
+            Log("GetInstances() time: " + (timeGetInstances - timeStart));
 
             Log("Evaluating NaiveBayesMultinomial");
             Evaluation NBEval = new Evaluation(data);
             NBEval.crossValidateModel(new NaiveBayesMultinomial(), data, CROSS_FOLDS_NUM, new Random(1));
+            long timeNB = System.currentTimeMillis();
+            Log("NBEval time: " + (timeNB - timeGetInstances));
             weka.core.SerializationHelper.write(NB_EVAL, NBEval);
             PrintEvaluation(NBEval);
+            Log("Total NB time: " + (timeNB - timeStart));
 
-            Log("Evaluating RandomForest");
-            Evaluation DTEval = new Evaluation(data);
-            DTEval.crossValidateModel(new RandomForest(), data, CROSS_FOLDS_NUM, new Random(1));
-            weka.core.SerializationHelper.write(DT_EVAL, DTEval);
-            PrintEvaluation(DTEval);
+//            long timeStartDT = System.currentTimeMillis();
+//            Log("Evaluating J48");
+//            Evaluation DTEval = new Evaluation(data);
+//            DTEval.crossValidateModel(new J48(), data, CROSS_FOLDS_NUM, new Random(1));
+//            long timeDT = System.currentTimeMillis();
+//            Log("DTEval time: " + (timeDT - timeStartDT));
+//            weka.core.SerializationHelper.write(DT_EVAL, DTEval);
+//            PrintEvaluation(DTEval);
+//            Log("Total DT time: " + (timeGetInstances - timeStart + timeDT - timeStartDT));
         }
         else{
             if(new File(NB_EVAL).isFile()){
@@ -61,7 +76,7 @@ public class Program {
                 PrintEvaluation(eval);
             }
             if(new File(DT_EVAL).isFile()){
-                Log("Reading RandomForest evaluation");
+                Log("Reading J48 evaluation");
                 Evaluation eval = (Evaluation)weka.core.SerializationHelper.read(DT_EVAL);
                 PrintEvaluation(eval);
             }
@@ -69,7 +84,7 @@ public class Program {
     }
 
     private static Instances GetInstances() throws Exception {
-        if(READ_EVAL && new File(DATASET + ARFF).isFile()){
+        if(READ_DATASET && new File(DATASET + ARFF).isFile()){
             Log("reading dataset file");
             Instances result = new Instances(new BufferedReader(new FileReader(DATASET + ARFF)));
             Log("setting ClassIndex");
@@ -113,14 +128,11 @@ public class Program {
         try {
             StringToWordVector stringToWordVector = new StringToWordVector();
             stringToWordVector.setInputFormat(dataset);
-
             stringToWordVector.setWordsToKeep(WORDS_TO_KEEP);
-            stringToWordVector.setOutputWordCounts(true);
-            stringToWordVector.setIDFTransform(true);
-            stringToWordVector.setTFTransform(true);
-
-//            stringToWordVector.setMinTermFreq(5);
-            stringToWordVector.setStemmer(new IteratedLovinsStemmer());
+            stringToWordVector.setOutputWordCounts(OUTPUT_WORD_COUNTS);
+            stringToWordVector.setIDFTransform(IDF_TRANSFORM);
+            stringToWordVector.setTFTransform(TF_TRANSFORM);
+            stringToWordVector.setStemmer(STEMMER);
             return Filter.useFilter(dataset, stringToWordVector);
         } catch (Exception e) {
             e.printStackTrace();
